@@ -4,7 +4,7 @@ import type { NormaLocal, StatusChecklist } from "@/types/gabarito";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 type Body = {
   messages?: ConsultorChatMessage[];

@@ -28,10 +28,20 @@ export async function resolveVisionModelRunRef(
       `REPLICATE_VISION_MODEL inválido: "${trimmed}". Use o formato dono/nome ou dono/nome:versão.`,
     );
   }
-  const model = await replicate.models.get(owner, name);
-  const versionId = model.latest_version?.id;
-  if (!versionId) {
-    throw new Error(`Modelo ${owner}/${name} sem versão publicada na Replicate.`);
+  try {
+    const model = await replicate.models.get(owner, name);
+    const versionId = model.latest_version?.id;
+    if (!versionId) {
+      throw new Error(`Modelo ${owner}/${name} sem versão publicada na Replicate.`);
+    }
+    return `${owner}/${name}:${versionId}` as VisionModelRunRef;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/404|not found/i.test(msg)) {
+      console.error(
+        `[resolveVisionModelRunRef] Modelo não encontrado: ${owner}/${name}. Ex.: meta/llama-3.2-11b-vision-instruct não existe na Replicate — use lucataco/ollama-llama3.2-vision-11b ou justmalhar/meta-llama-3.2-11b-vision (REPLICATE_VISION_MODEL).`,
+      );
+    }
+    throw e;
   }
-  return `${owner}/${name}:${versionId}` as VisionModelRunRef;
 }

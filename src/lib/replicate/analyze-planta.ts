@@ -1,3 +1,4 @@
+import { throwMissingEnv } from "@/lib/env/missing-env-log";
 import { computeMetricasTerreno, type MetricasTerrenoPrecomputadas } from "@/lib/gabarito/metricas-terreno";
 import { enrichChecklistWithUrbanIntelligence } from "@/lib/gabarito/enrich-checklist";
 import { resolveVisionModelRunRef } from "@/lib/replicate/resolve-vision-model-run-ref";
@@ -9,8 +10,12 @@ import { runLlamaAuditPrompt } from "@/lib/replicate/run-llama-text";
 import { parseChecklistFromModelOutput } from "@/lib/replicate/parse-checklist";
 import type { ExtracaoVisaoLlama, NormaLocal, StatusChecklist } from "@/types/gabarito";
 
-/** Padrão: 11B vision (velocidade). Para máxima precisão: meta/llama-3.2-90b-vision-instruct no env. */
-const DEFAULT_VISION_MODEL = "meta/llama-3.2-11b-vision-instruct";
+/**
+ * Padrão na Replicate: `meta/llama-3.2-11b-vision-instruct` não existe (404 em replicate.com/meta/...).
+ * Usamos `lucataco/ollama-llama3.2-vision-11b` (image URL + prompt). Alternativa: `justmalhar/meta-llama-3.2-11b-vision`.
+ * Texto-only (sem imagem): `meta/meta-llama-3-70b-instruct` — já usado na auditoria via `runLlamaAuditPrompt`, não substitui visão.
+ */
+const DEFAULT_VISION_MODEL = "lucataco/ollama-llama3.2-vision-11b";
 
 export type AnalyzePlantaInput = {
   imageBase64: string;
@@ -83,9 +88,12 @@ export async function auditPlantaFromExtracao(
 }
 
 function getReplicate(): Replicate {
-  const token = process.env.REPLICATE_API_TOKEN;
+  const token = process.env.REPLICATE_API_TOKEN?.trim();
   if (!token) {
-    throw new Error("Defina REPLICATE_API_TOKEN para executar a análise por visão.");
+    throwMissingEnv(
+      "REPLICATE_API_TOKEN",
+      "Análise por visão usa a API da Replicate; token apenas no servidor.",
+    );
   }
   return new Replicate({ auth: token });
 }
@@ -101,7 +109,11 @@ function buildVisionModelInput(modelRef: string, imageUrl: string, prompt: strin
   if (r.includes("moondream")) {
     return { image: imageUrl, prompt };
   }
-  if (r.includes("llama-3.2") && r.includes("vision")) {
+  if (
+    (r.includes("llama-3.2") && r.includes("vision")) ||
+    r.includes("ollama-llama3.2-vision") ||
+    r.includes("meta-llama-3.2-11b-vision")
+  ) {
     return { image: imageUrl, prompt, max_tokens: 4096 };
   }
   return { image: imageUrl, prompt, max_tokens: 4096 };
@@ -129,12 +141,22 @@ export async function analyzePlantaVision(payload: AnalyzePlantaInput): Promise<
   const modelRef = process.env.REPLICATE_VISION_MODEL?.trim() || DEFAULT_VISION_MODEL;
   const model = await resolveVisionModelRunRef(replicate, modelRef);
   const buffer = Buffer.from(payload.imageBase64, "base64");
+  /** URL pública na CDN da Replicate — não usar file:// nem localhost; a API da Replicate exige URL acessível. */
   const file = await replicate.files.create(buffer, {
     content_type: payload.mimeType || "image/png",
     filename: "planta",
   });
 
   const imageUrl = file.urls.get;
+  if (typeof imageUrl !== "string" || !/^https?:\/\//i.test(imageUrl)) {
+    console.error(
+      "[analyzePlantaVision] Replicate files.create não devolveu URL https pública da imagem:",
+      typeof imageUrl,
+    );
+    throw new Error(
+      "A visão na Replicate exige uma URL pública http(s) da imagem (não file:// nem caminho local). Verifique o token e o retorno de files.create.",
+    );
+  }
   const visionPrompt = buildVisionExtractionPrompt(payload.zona, payload.norma);
   const visionInput = buildVisionModelInput(modelRef, imageUrl, visionPrompt);
 

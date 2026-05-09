@@ -1,3 +1,4 @@
+import { resolvePublicImageUrlForServer } from "@/lib/env/resolve-public-image-url";
 import { computeAreaRestantePotencialM2, computeMetricasTerreno } from "@/lib/gabarito/metricas-terreno";
 import { coerceNormaLocal } from "@/lib/gabarito/norma-coerce";
 import { composeUltimaAnaliseIa } from "@/lib/gabarito/persist-analise-projeto";
@@ -68,12 +69,12 @@ export async function analyzeProjetoById(projetoId: string): Promise<AnalyzeProj
       return { ok: false, error: "Projeto não encontrado.", status: 404 };
     }
 
-    const imageUrl =
+    const imageUrlRaw =
       (projeto as { imagem_planta_url?: string | null; planta_url?: string | null }).imagem_planta_url?.trim() ||
       (projeto as { planta_url?: string | null }).planta_url?.trim() ||
       "";
 
-    if (!imageUrl) {
+    if (!imageUrlRaw) {
       return {
         ok: false,
         error:
@@ -81,6 +82,8 @@ export async function analyzeProjetoById(projetoId: string): Promise<AnalyzeProj
         status: 422,
       };
     }
+
+    const imageUrl = resolvePublicImageUrlForServer(imageUrlRaw);
 
     const areaTerrenoRaw = (projeto as { area_terreno_m2?: number | null }).area_terreno_m2;
     const areaTerrenoM2 =

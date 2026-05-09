@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { runLlamaAuditPrompt } from "@/lib/replicate/run-llama-text";
 
 export const runtime = "nodejs";
-export const maxDuration = 90;
+export const maxDuration = 60;
 
 type Body = {
   zona_urbanistica?: string;

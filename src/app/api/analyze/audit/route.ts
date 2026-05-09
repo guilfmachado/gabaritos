@@ -6,7 +6,7 @@ import { NORMAS_LOCAIS_COLUMNS, type ExtracaoVisaoLlama } from "@/types/gabarito
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 type Body = {
   zona_urbanistica: string;

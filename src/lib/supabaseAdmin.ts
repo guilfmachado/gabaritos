@@ -6,6 +6,7 @@
  * e outros códigos que executam exclusivamente no servidor.
  */
 
+import { throwMissingEnv } from "@/lib/env/missing-env-log";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let adminClient: SupabaseClient | null = null;
@@ -16,9 +17,13 @@ export function getSupabaseAdmin(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
-  if (!url || !serviceRoleKey) {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY devem estar definidas para o cliente admin.",
+  if (!url) {
+    throwMissingEnv("NEXT_PUBLIC_SUPABASE_URL");
+  }
+  if (!serviceRoleKey) {
+    throwMissingEnv(
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "Chave apenas no servidor (nunca NEXT_PUBLIC_*). Configure na Vercel em Environment Variables.",
     );
   }
 

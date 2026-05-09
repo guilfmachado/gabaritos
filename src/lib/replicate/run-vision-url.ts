@@ -1,13 +1,18 @@
+import { resolvePublicImageUrlForServer } from "@/lib/env/resolve-public-image-url";
+import { throwMissingEnv } from "@/lib/env/missing-env-log";
 import { resolveVisionModelRunRef } from "@/lib/replicate/resolve-vision-model-run-ref";
 import Replicate from "replicate";
 
-/** LLaVA 13B por defeito; alternativa: lucataco/moondream2 (slug; digest resolvido em runtime). */
-const DEFAULT_VISION_MODEL = "yorickvp/llava-13b";
+/** Alinhado a `analyze-planta.ts` — slug `meta/llama-3.2-11b-vision-instruct` não existe na Replicate (404). */
+const DEFAULT_VISION_MODEL = "lucataco/ollama-llama3.2-vision-11b";
 
 function getReplicate(): Replicate {
-  const token = process.env.REPLICATE_API_TOKEN;
+  const token = process.env.REPLICATE_API_TOKEN?.trim();
   if (!token) {
-    throw new Error("Defina REPLICATE_API_TOKEN para executar a análise por visão.");
+    throwMissingEnv(
+      "REPLICATE_API_TOKEN",
+      "Necessário para modelos na Replicate; configure na Vercel (server only).",
+    );
   }
   return new Replicate({ auth: token });
 }
@@ -20,9 +25,11 @@ export async function runVisionModelWithImageUrl(
   const modelRef = process.env.REPLICATE_VISION_MODEL?.trim() || DEFAULT_VISION_MODEL;
   const model = await resolveVisionModelRunRef(replicate, modelRef);
 
+  const resolvedImageUrl = resolvePublicImageUrlForServer(imageUrl);
+
   const isMoondream = modelRef.toLowerCase().includes("moondream");
   const input: Record<string, string | number> = {
-    image: imageUrl,
+    image: resolvedImageUrl,
     prompt,
   };
   if (!isMoondream) {

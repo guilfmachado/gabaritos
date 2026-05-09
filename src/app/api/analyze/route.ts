@@ -7,7 +7,7 @@ import { createServiceSupabase } from "@/lib/supabase/service";
 import { NORMAS_LOCAIS_COLUMNS, type NormaLocal, type StatusChecklist } from "@/types/gabarito";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -215,8 +215,12 @@ export async function POST(req: Request) {
         : typeof e === "string"
           ? e
           : `Falha na análise (${JSON.stringify(e)})`;
-    // Loga a causa real no servidor para facilitar diagnóstico.
     console.error("[api/analyze] erro:", e);
+    if (e instanceof Error && /REPLICATE|SUPABASE|NEXT_PUBLIC_SITE_URL|não configurada/i.test(e.message)) {
+      console.error(
+        "[api/analyze] Deploy: variável de ambiente provavelmente ausente — veja .env.example e o painel Environment Variables na Vercel.",
+      );
+    }
     const status =
       message.includes("Defina ")
       || /timeout|timed out|ETIMEDOUT/i.test(message)

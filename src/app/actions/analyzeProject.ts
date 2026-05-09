@@ -131,6 +131,7 @@ export async function analyzeProject(formData: FormData): Promise<AnalyzeProject
       auditRaw = out.auditRaw;
     } catch (e) {
       const message = e instanceof Error ? e.message : "Falha na integração com a Replicate.";
+      console.error("[analyzeProject] Falha Replicate — confira REPLICATE_API_TOKEN e REPLICATE_VISION_MODEL na Vercel.", e);
       if (/timeout|timed out|ETIMEDOUT/i.test(message)) {
         return { ok: false, error: "Tempo esgotado na análise. Tente de novo com imagem menor ou outro modelo." };
       }
@@ -214,8 +215,16 @@ export async function analyzeProject(formData: FormData): Promise<AnalyzeProject
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erro inesperado na análise.";
     if (message.includes("NEXT_PUBLIC_SUPABASE_URL") || message.includes("SUPABASE_SERVICE_ROLE_KEY")) {
-      return { ok: false, error: "Supabase admin não configurado." };
+      console.error(
+        "[analyzeProject] Supabase admin — defina NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY na Vercel (Environment Variables).",
+      );
+      return {
+        ok: false,
+        error:
+          "Supabase admin não configurado. Na Vercel, adicione NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY (somente servidor).",
+      };
     }
+    console.error("[analyzeProject] Erro geral na análise.", e);
     return { ok: false, error: message };
   }
 }

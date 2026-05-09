@@ -1,3 +1,4 @@
+import { throwMissingEnv } from "@/lib/env/missing-env-log";
 import { resolveVisionModelRunRef } from "@/lib/replicate/resolve-vision-model-run-ref";
 import Replicate from "replicate";
 
@@ -5,9 +6,12 @@ const DEFAULT_TEXT_MODEL = "meta/meta-llama-3-8b-instruct";
 const DEFAULT_AUDIT_MODEL = "meta/meta-llama-3-70b-instruct";
 
 function getReplicate(): Replicate {
-  const token = process.env.REPLICATE_API_TOKEN;
+  const token = process.env.REPLICATE_API_TOKEN?.trim();
   if (!token) {
-    throw new Error("Defina REPLICATE_API_TOKEN para usar Llama Intelligence.");
+    throwMissingEnv(
+      "REPLICATE_API_TOKEN",
+      "Token só no servidor (API Route / Server Action); nunca no browser.",
+    );
   }
   return new Replicate({ auth: token });
 }
