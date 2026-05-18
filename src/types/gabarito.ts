@@ -18,6 +18,8 @@ export type ChecklistItem = {
 export type MatrizConformidadeLinha = {
   medida_identificada: string;
   regra_lc751: string;
+  /** Fonte rastreável da regra aplicada (ex.: Plano Diretor - Art. 20, Zoneamento - Zona ZR4). */
+  origem_legal?: string;
   status_conformidade: string;
 };
 
@@ -37,6 +39,105 @@ export type AlertaCriticoUrbano = {
   severidade: "critico" | "alerta";
   titulo: string;
   mensagem: string;
+};
+
+export type GabaritoEngineSeverity = "CRITICAL" | "WARNING" | "INFO";
+export type GabaritoEngineViolation = {
+  id: string;
+  severity: GabaritoEngineSeverity;
+  pillar: string;
+  title: string;
+  message: string;
+  law: string;
+  article: string;
+  measured?: number | string | null;
+  limit?: number | string | null;
+};
+
+export type GabaritoEngineSnapshot = {
+  isAprovado: boolean;
+  violations: GabaritoEngineViolation[];
+};
+
+export type NormaVigenciaStatus = "ativo" | "revogado" | "substituido";
+export type RestricaoUsoSoloStatus = "nao_informado" | "sem_restricao" | "liberada_com_restricao" | "em_estudo" | "interditado";
+
+export type ValorReferenciaFiscal = {
+  valor: number;
+  ano_fiscal: number;
+  moeda: "BRL";
+  fonte_legal: string;
+};
+
+export type CalculoContrapartidaUsoSolo = {
+  norma_id: string;
+  status: NormaVigenciaStatus;
+  formula: "CF = ACD * VR";
+  acd_m2: number;
+  vr: ValorReferenciaFiscal;
+  substituido_por?: string;
+};
+
+export type ParametrosViaDecreto9155 = {
+  gabarito_via_m: number;
+  simetria: "simetrica" | "assimetrica" | "desnivel" | "nao_informado";
+  distancia_eixo_ao_alinhamento_m?: number | null;
+};
+
+export type AlinhamentoViaDecreto9155 = {
+  distancia_eixo_ao_alinhamento_m: number | null;
+  distancia_eixo_ate_recuo_edificacao_m: number | null;
+  exige_projeto_oficial_via: boolean;
+  nota_tecnica: string;
+};
+
+export type RebaixoAcessoVeicularLc748 = {
+  largura_m: number;
+  afastamento_divisa_m?: number | null;
+};
+
+export type ValidacaoRebaixosLc748Input = {
+  testada_m: number;
+  rebaixos: RebaixoAcessoVeicularLc748[];
+  distancias_entre_rebaixos_m?: number[];
+  uso_especial?: "posto_combustivel" | "logistica_5_ou_mais_caminhoes" | "outro";
+  nao_residencial_rua_sem_estacionamento?: boolean;
+};
+
+export type ViaLoteamentoLc748Input = {
+  uso_loteamento: "residencial" | "outro";
+  extensao_via_m: number;
+  gabarito_via_m: number;
+  sem_saida?: boolean;
+  raio_praca_retorno_m?: number | null;
+  possui_via_transversal_ate_30m_final?: boolean;
+};
+
+export type CompartimentoLc1247 = {
+  nome: string;
+  tipo: "permanencia_prolongada" | "permanencia_transitoria";
+  area_piso_m2: number;
+  pe_direito_m?: number | null;
+  area_iluminacao_m2?: number | null;
+  area_ventilacao_m2?: number | null;
+  possui_exaustao_mecanica?: boolean;
+};
+
+export type EscadaLc1247 = {
+  uso: "coletivo" | "privativo" | "manutencao";
+  largura_m?: number | null;
+  espelho_cm?: number | null;
+  piso_cm?: number | null;
+  helicoidal?: boolean;
+};
+
+export type ValidacaoZoneamentoLc751Input = {
+  area_terreno_m2: number;
+  area_projecao_horizontal_m2?: number | null;
+  area_permeavel_m2?: number | null;
+  recuo_frontal_m?: number | null;
+  afastamento_lateral_m?: number | null;
+  parede_lindeira_tem_aberturas?: boolean | null;
 };
 
 /** Metadados gravados com o snapshot no `status_checklist` (além dos itens da IA). */
@@ -102,11 +203,12 @@ export type StatusChecklist = {
   area_construida_estimada_ia_m2?: number | null;
   potencial?: PotencialArt1320;
   alertas_criticos?: AlertaCriticoUrbano[];
+  validation_engine?: GabaritoEngineSnapshot;
 };
 
 /** Colunas oficiais de `normas_locais` usadas pelo Gabarito. */
 export const NORMAS_LOCAIS_COLUMNS =
-  "id, zona_urbanistica, recuo_frontal_min, recuo_lateral_min, taxa_ocupacao_max, indice_aproveitamento_max, area_permeavel_min, observacao" as const;
+  "id, zona_urbanistica, recuo_frontal_min, recuo_lateral_min, taxa_ocupacao_max, indice_aproveitamento_max, area_permeavel_min, coeficiente_aproveitamento_basico, coeficiente_aproveitamento_maximo, taxa_ocupacao, taxa_permeabilidade, recuo_frontal, afastamento_lateral_fundos, observacao" as const;
 
 /** Linha de `normas_locais`. */
 export type NormaLocal = {
@@ -117,6 +219,12 @@ export type NormaLocal = {
   taxa_ocupacao_max: number;
   indice_aproveitamento_max: number;
   area_permeavel_min: number;
+  coeficiente_aproveitamento_basico: number;
+  coeficiente_aproveitamento_maximo: number;
+  taxa_ocupacao: number;
+  taxa_permeabilidade: number;
+  recuo_frontal: number;
+  afastamento_lateral_fundos: string;
   observacao: string | null;
 };
 

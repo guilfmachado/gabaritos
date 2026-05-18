@@ -4,6 +4,7 @@ import {
   buildSugestaoAproveitamentoPotencial,
   computePotencialArt1320,
 } from "@/lib/gabarito/potencial";
+import { origemLegalParaRegra } from "@/lib/gabarito/zona-legal-context";
 import type { NormaLocal, StatusChecklist } from "@/types/gabarito";
 
 export function enrichChecklistWithUrbanIntelligence(
@@ -44,6 +45,12 @@ export function enrichChecklistWithUrbanIntelligence(
   return {
     ...checklist,
     potencial,
+    matriz_conformidade: checklist.matriz_conformidade?.map((row) => ({
+      ...row,
+      origem_legal:
+        row.origem_legal?.trim() ||
+        origemLegalParaRegra(row.medida_identificada, row.regra_lc751, norma.zona_urbanistica),
+    })),
     alertas_criticos,
     otimizacao_sugestao_ia: otimizacao || checklist.otimizacao_sugestao_ia,
   };

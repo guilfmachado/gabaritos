@@ -1,7 +1,10 @@
 import { throwMissingEnv } from "@/lib/env/missing-env-log";
 import { computeMetricasTerreno, type MetricasTerrenoPrecomputadas } from "@/lib/gabarito/metricas-terreno";
 import { enrichChecklistWithUrbanIntelligence } from "@/lib/gabarito/enrich-checklist";
+import { appendDeprecatedNormaAlerts, appendRestricaoGeotecnicaAlerts } from "@/lib/gabarito/normas-revogadas";
+import { filtrarAlertasEdiliciosPorTombamento } from "@/lib/gabarito/edificacoes-lc1247";
 import { resolveVisionModelRunRef } from "@/lib/replicate/resolve-vision-model-run-ref";
+import { validateProject, violationsToChecklistItems } from "@/services/validationEngine";
 import Replicate from "replicate";
 import { buildLegalAuditPrompt } from "@/lib/replicate/build-legal-audit-prompt";
 import { buildVisionExtractionPrompt } from "@/lib/replicate/build-vision-extract-prompt";
@@ -23,6 +26,8 @@ export type AnalyzePlantaInput = {
   areaConstruidaProjetoM2?: number | null;
   areaPermeavelPropostaM2?: number | null;
   usoImovel?: string | null;
+  restricaoUsoSolo?: string | null;
+  isTombado?: boolean;
 };
 
 export type AnalyzePlantaResult = {
@@ -41,6 +46,8 @@ export type AuditFromExtracaoInput = {
   areaConstruidaProjetoM2?: number | null;
   areaPermeavelPropostaM2?: number | null;
   usoImovel?: string | null;
+  restricaoUsoSolo?: string | null;
+  isTombado?: boolean;
 };
 
 /** Auditoria 70B a partir de extração já obtida (sem nova chamada de visão). */
@@ -58,6 +65,8 @@ export async function auditPlantaFromExtracao(
     areaConstruidaProjetoM2: input.areaConstruidaProjetoM2 ?? null,
     areaPermeavelPropostaM2: input.areaPermeavelPropostaM2 ?? null,
     usoImovelDeclarado: input.usoImovel ?? null,
+    restricaoUsoSolo: input.restricaoUsoSolo ?? null,
+    isTombado: input.isTombado === true,
   });
   const auditRaw = await runLlamaAuditPrompt(auditPrompt, 4096);
   let checklist = parseChecklistFromModelOutput(auditRaw);
@@ -79,7 +88,37 @@ export async function auditPlantaFromExtracao(
   if (input.usoImovel && /residencial/i.test(input.usoImovel)) {
     checklist.inferencia_uso_residencial = true;
   }
+  const engineResult = validateProject({
+    norma: input.norma,
+    zona_urbanistica: input.zona,
+    uso_imovel: input.usoImovel,
+    is_tombado: input.isTombado === true,
+    area_terreno_m2: input.areaTerrenoM2,
+    area_construida_total_m2:
+      input.areaConstruidaProjetoM2
+      ?? input.extracao.area_construida_total_m2
+      ?? input.extracao.area_construida_estimada_m2,
+    area_projecao_horizontal_m2: input.extracao.area_projecao_horizontal_m2,
+    area_permeavel_m2: input.areaPermeavelPropostaM2 ?? input.extracao.area_permeavel_estimada_m2,
+    recuo_frontal_m: input.extracao.recuo_frontal_m,
+    afastamento_lateral_m: input.extracao.recuo_lateral_m,
+    altura_edificacao_m: input.extracao.altura_edificacao_estimada_m,
+  });
+  const itensEngine = violationsToChecklistItems(engineResult.violations);
+  if (itensEngine.length > 0) {
+    const existingIds = new Set(checklist.itens.map((item) => item.id));
+    checklist = {
+      ...checklist,
+      itens: [...itensEngine.filter((item) => !existingIds.has(item.id)), ...checklist.itens],
+      validation_engine: engineResult,
+    };
+  } else {
+    checklist = { ...checklist, validation_engine: engineResult };
+  }
   checklist = enrichChecklistWithUrbanIntelligence(checklist, input.norma, input.areaTerrenoM2);
+  checklist = appendDeprecatedNormaAlerts(checklist, [auditRaw, input]);
+  checklist = appendRestricaoGeotecnicaAlerts(checklist, input.restricaoUsoSolo);
+  checklist.alertas_criticos = filtrarAlertasEdiliciosPorTombamento(checklist.alertas_criticos, input.isTombado === true);
   return { checklist, auditRaw };
 }
 
@@ -185,6 +224,8 @@ export async function analyzePlantaVision(payload: AnalyzePlantaInput): Promise<
     areaConstruidaProjetoM2: payload.areaConstruidaProjetoM2 ?? null,
     areaPermeavelPropostaM2: payload.areaPermeavelPropostaM2 ?? null,
     usoImovel: payload.usoImovel ?? null,
+    restricaoUsoSolo: payload.restricaoUsoSolo ?? null,
+    isTombado: payload.isTombado === true,
   });
 
   const rawOutput = JSON.stringify(

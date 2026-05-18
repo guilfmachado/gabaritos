@@ -14,6 +14,7 @@ const QUICK_ACTIONS = [
   { label: "Erro de recuo?", text: "Onde pode estar o erro de recuo na minha análise? Explique recuo frontal e laterais com os artigos corretos." },
   { label: "Regras do Art. 41", text: "Quais são as regras do Art. 41, I da LC 751/2010 no meu caso (uso e zona)?" },
   { label: "Permeável mínimo", text: "Qual o mínimo de área permeável que preciso respeitar e como calcular com meu terreno?" },
+  { label: "GEO Blumenau", text: "Como uso o GEO Blumenau para conferir lote, zoneamento e Consulta para Construir antes de protocolar?" },
 ] as const;
 
 export type ConsultorIADrawerProps = {
@@ -46,7 +47,7 @@ export function ConsultorIADrawer({
           content:
             "Olá! Sou o **Consultor IA** de auditoria urbanística. Tenho acesso aos campos que você preencheu, à norma da zona e ao JSON da última análise. Pergunte à vontade — citarei sempre os artigos da **LC 751/2010** (referência: " +
             LC751_PDF_REFERENCIA_NOME +
-            ").",
+            "). Para cadastro, lote, Consulta para Construir, mapas temáticos ou dados WFS, use também o **GEO Blumenau**: https://geo.blumenau.sc.gov.br.",
         },
       ]);
     }

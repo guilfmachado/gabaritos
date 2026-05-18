@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { computeMetricasTerreno } from "@/lib/gabarito/metricas-terreno";
 import { coerceNormaLocal } from "@/lib/gabarito/norma-coerce";
+import { appendDeprecatedNormaAlerts, appendRestricaoGeotecnicaAlerts } from "@/lib/gabarito/normas-revogadas";
+import { filtrarAlertasEdiliciosPorTombamento } from "@/lib/gabarito/edificacoes-lc1247";
 import { composeUltimaAnaliseIa, insertProjetoAnaliseSnapshot } from "@/lib/gabarito/persist-analise-projeto";
 import { analyzePlantaVision } from "@/lib/replicate/analyze-planta";
 import { createServiceSupabase } from "@/lib/supabase/service";
@@ -26,6 +28,9 @@ type Body = {
   area_permeavel_proposta?: number | string;
   uso?: string;
   uso_imovel?: string;
+  restricao_uso_solo?: string;
+  situacao_risco_geotecnico?: string;
+  is_tombado?: boolean;
   /** UUID auth.users, opcional. */
   user_id?: string;
 };
@@ -76,6 +81,8 @@ export async function POST(req: Request) {
         ? Number(areaPermeavelPropostaRaw.trim().replace(",", "."))
         : Number(areaPermeavelPropostaRaw);
   const usoImovel = (body.uso_imovel ?? body.uso ?? "").trim();
+  const restricaoUsoSolo = (body.restricao_uso_solo ?? body.situacao_risco_geotecnico ?? "").trim();
+  const isTombado = body.is_tombado === true;
 
   try {
     const supabase = createServiceSupabase();
@@ -113,6 +120,8 @@ export async function POST(req: Request) {
           ? (areaPermeavelProposta as number)
           : null,
       usoImovel: usoImovel || null,
+      restricaoUsoSolo: restricaoUsoSolo || null,
+      isTombado,
     });
     if (/residencial/i.test(usoImovel)) {
       checklist.inferencia_uso_residencial = true;
@@ -144,8 +153,16 @@ export async function POST(req: Request) {
       };
       checklist.alertas_criticos = checklist.alertas_criticos ? [bloqueio, ...checklist.alertas_criticos] : [bloqueio];
     }
+    const checklistComNormasRevogadas = appendRestricaoGeotecnicaAlerts(
+      appendDeprecatedNormaAlerts(checklist, [body, rawOutput, auditRaw, visionRaw]),
+      restricaoUsoSolo,
+    );
+    checklistComNormasRevogadas.alertas_criticos = filtrarAlertasEdiliciosPorTombamento(
+      checklistComNormasRevogadas.alertas_criticos,
+      isTombado,
+    );
 
-    const ultimaAnaliseIa = composeUltimaAnaliseIa(checklist, auditRaw, visionRaw);
+    const ultimaAnaliseIa = composeUltimaAnaliseIa(checklistComNormasRevogadas, auditRaw, visionRaw);
 
     const payload: {
       checklist: StatusChecklist;
@@ -158,7 +175,7 @@ export async function POST(req: Request) {
       imagem_planta_url?: string | null;
       persistError?: string;
     } = {
-      checklist,
+      checklist: checklistComNormasRevogadas,
       rawOutput,
       norma,
       ultima_analise_ia: ultimaAnaliseIa || rawOutput,
@@ -182,7 +199,7 @@ export async function POST(req: Request) {
           nome,
           zonaUrbanistica: body.zona_urbanistica,
           areaTerrenoM2: areaTerreno,
-          checklist,
+          checklist: checklistComNormasRevogadas,
           rawOutput,
           visionRaw,
           auditRaw,

@@ -1,3 +1,4 @@
+import { buildZonaLegalContext } from "@/lib/gabarito/zona-legal-context";
 import type { NormaLocal } from "@/types/gabarito";
 
 /**
@@ -6,12 +7,18 @@ import type { NormaLocal } from "@/types/gabarito";
 export function buildVisionExtractionPrompt(zona: string, norma: NormaLocal): string {
   const rf = norma.recuo_frontal_min;
   const rl = norma.recuo_lateral_min;
+  const zonaContext = buildZonaLegalContext(norma);
   return [
-    "Tarefa: EXTRAÇÃO TÉCNICA da planta (imagem). Não faça auditoria jurídica aqui — apenas leitura objetiva.",
+    "Você é um auditor sênior da SEPLAN de Blumenau. Analise a planta fornecida cruzando estritamente com os parâmetros da zona informada e a LC 751/2010. Se o uso for Residencial, valide agressivamente o Art. 41, I (Bloqueio abaixo da cota 12m) se aplicável.",
+    "",
+    "Tarefa desta etapa: EXTRAÇÃO TÉCNICA da planta (imagem). Não emita parecer jurídico completo aqui — leia objetivamente medidas, usos e indícios que alimentarão a auditoria.",
     "PRIORIDADE MÁXIMA: localizar no desenho/quadro de áreas (ou cotas) (1) a ÁREA CONSTRUÍDA TOTAL e (2) a ÁREA DE PROJEÇÃO HORIZONTAL no terreno (silhueta/pé-direito no solo, para taxa de ocupação).",
     "Esses números alimentam a Entrada Inteligente e os campos de VGV Oculto do dashboard premium; seja conservador e use null quando a leitura estiver ilegível.",
     `Zona urbanística informada: ${zona}.`,
     `Parâmetros de referência do município (compare visualmente com cotas na prancha): recuo frontal mín. ${rf} m; recuo lateral mín. tabelado ${rl} m (a verificação H/6 será feita na etapa seguinte).`,
+    "",
+    "=== Parâmetros dinâmicos exatos da zona (anexados pelo sistema) ===",
+    zonaContext,
     "",
     "Responda APENAS com um único objeto JSON válido (sem markdown, sem texto fora do JSON), com as chaves:",
     "{",

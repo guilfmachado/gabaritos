@@ -1,5 +1,7 @@
 import { composeUltimaAnaliseIa } from "@/lib/gabarito/persist-analise-projeto";
 import { coerceNormaLocal } from "@/lib/gabarito/norma-coerce";
+import { appendDeprecatedNormaAlerts, appendRestricaoGeotecnicaAlerts } from "@/lib/gabarito/normas-revogadas";
+import { filtrarAlertasEdiliciosPorTombamento } from "@/lib/gabarito/edificacoes-lc1247";
 import { auditPlantaFromExtracao } from "@/lib/replicate/analyze-planta";
 import { createServiceSupabase } from "@/lib/supabase/service";
 import { NORMAS_LOCAIS_COLUMNS, type ExtracaoVisaoLlama } from "@/types/gabarito";
@@ -14,6 +16,9 @@ type Body = {
   area_construida_m2?: number | string | null;
   area_permeavel_m2?: number | string | null;
   uso_imovel?: string | null;
+  restricao_uso_solo?: string | null;
+  situacao_risco_geotecnico?: string | null;
+  is_tombado?: boolean;
   extracao_visao: ExtracaoVisaoLlama;
 };
 
@@ -65,8 +70,12 @@ export async function POST(req: Request) {
     const ac = num(body.area_construida_m2);
     const ap = num(body.area_permeavel_m2);
     const uso = typeof body.uso_imovel === "string" ? body.uso_imovel.trim() : "";
+    const restricaoUsoSolo =
+      (typeof body.restricao_uso_solo === "string" ? body.restricao_uso_solo : body.situacao_risco_geotecnico ?? "")
+        .trim();
+    const isTombado = body.is_tombado === true;
 
-    const { checklist, auditRaw } = await auditPlantaFromExtracao({
+    const auditResult = await auditPlantaFromExtracao({
       zona,
       norma,
       extracao: ex,
@@ -74,7 +83,14 @@ export async function POST(req: Request) {
       areaConstruidaProjetoM2: ac != null && ac > 0 ? ac : null,
       areaPermeavelPropostaM2: ap != null && ap >= 0 ? ap : null,
       usoImovel: uso || null,
+      restricaoUsoSolo: restricaoUsoSolo || null,
+      isTombado,
     });
+    const auditRaw = auditResult.auditRaw;
+    let checklist = auditResult.checklist;
+    checklist = appendDeprecatedNormaAlerts(checklist, [body, auditRaw]);
+    checklist = appendRestricaoGeotecnicaAlerts(checklist, restricaoUsoSolo);
+    checklist.alertas_criticos = filtrarAlertasEdiliciosPorTombamento(checklist.alertas_criticos, isTombado);
 
     const ultima_analise_ia = composeUltimaAnaliseIa(checklist, auditRaw, "");
 

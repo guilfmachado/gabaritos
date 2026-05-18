@@ -1,4 +1,3 @@
-import { getLc751LeiTextoParaChatLlm } from "@/lib/gabarito/lc751-chat-reference";
 import type { NormaLocal, StatusChecklist } from "@/types/gabarito";
 
 export type ConsultorChatMessage = { role: "user" | "assistant"; content: string };
@@ -19,13 +18,21 @@ function formatHistory(messages: ConsultorChatMessage[], maxTurns = 14): string 
     .join("\n\n");
 }
 
+function sourceInstruction(source: "rag" | "fallback"): string {
+  if (source === "rag") {
+    return "Você é um auditor sênior da SEPLAN de Blumenau. Responda à dúvida do usuário com base na planta do projeto e usando EXCLUSIVAMENTE o contexto real das Leis Municipais anexado abaixo. Cite sempre os artigos correspondentes (ex.: se o contexto contiver dados da LC 749/2010, cite o artigo correto da lei de parcelamento). Se o contexto anexado não contiver base suficiente para responder, diga que a base vetorial não trouxe trecho suficiente e peça complemento, sem inventar norma.";
+  }
+  return "Você é um auditor sênior da SEPLAN de Blumenau. A busca vetorial não trouxe trechos reais suficientes; responda apenas com o fallback básico já mapeado abaixo, sinalizando que é uma orientação preliminar e que o documento oficial deve ser consultado antes de protocolo.";
+}
+
 export function buildConsultorUrbPrompt(input: {
   messages: ConsultorChatMessage[];
   formContext: ConsultorFormContext;
   checklistSnapshot: StatusChecklist | null;
   normaResumo: NormaLocal | null;
+  legislacaoContext: string;
+  legislacaoContextSource: "rag" | "fallback";
 }): string {
-  const lei = getLc751LeiTextoParaChatLlm();
   const formJson = JSON.stringify(input.formContext, null, 2);
   const normaJson = input.normaResumo ? JSON.stringify(input.normaResumo, null, 2) : "null";
   const checklistJson = input.checklistSnapshot
@@ -35,16 +42,18 @@ export function buildConsultorUrbPrompt(input: {
 
   return [
     "=== Instruções fixas ===",
-    "Você é o Consultor de Auditoria Urbanística do Gabarito (Blumenau/SC).",
+    sourceInstruction(input.legislacaoContextSource),
     "Responda em português do Brasil, com precisão técnica.",
-    "OBRIGATÓRIO: sempre que aplicável, cite o dispositivo da LC 751/2010 usando negrito Markdown: **Art. X** ou **Art. X, I** ou **Art. 35-A**.",
+    "OBRIGATÓRIO: sempre que aplicável, cite o dispositivo legal usando negrito Markdown: **Art. X** ou **Art. X, I** ou **Art. 35-A**.",
     "Ao recomendar correções numéricas (recuos, áreas, percentuais), fundamente com o artigo correspondente (ex.: **Art. 31** recuo frontal, **Art. 35** H/6, **Art. 22** permeável 20%, **Art. 20** potencial/CA, **Art. 21** TO).",
+    "Use o CONTEXTO JURÍDICO RECUPERADO abaixo como base normativa da resposta.",
     "Use os valores numéricos do CONTEXTO DO FORMULÁRIO abaixo como verdade do usuário para cálculos; não contradiga esses números.",
+    "Quando a dúvida depender de dados cadastrais, lote, zoneamento visual, Consulta para Construir, mapas temáticos ou WFS, oriente o usuário a conferir no GEO Blumenau: https://geo.blumenau.sc.gov.br. Não substitua a lei pelo mapa; use o GEO como fonte operacional de evidência espacial.",
     "Se faltar dado essencial, diga o que falta antes de concluir.",
     "Não use blocos de código; texto corrido ou listas simples com hífen.",
     "",
-    "=== Texto de referência da lei (trechos) ===",
-    lei,
+    `=== Contexto jurídico recuperado (${input.legislacaoContextSource}) ===`,
+    input.legislacaoContext,
     "",
     "=== Contexto do formulário (tempo real) ===",
     formJson,

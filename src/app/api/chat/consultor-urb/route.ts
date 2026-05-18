@@ -1,4 +1,5 @@
 import { buildConsultorUrbPrompt, type ConsultorChatMessage, type ConsultorFormContext } from "@/lib/replicate/build-consultor-urb-prompt";
+import { getLegalContext } from "@/app/actions/getLegalContext";
 import { runLlamaAuditPrompt } from "@/lib/replicate/run-llama-text";
 import type { NormaLocal, StatusChecklist } from "@/types/gabarito";
 import { NextResponse } from "next/server";
@@ -18,6 +19,18 @@ function lastUserContent(messages: ConsultorChatMessage[]): string | null {
     if (messages[i]?.role === "user") return messages[i].content?.trim() || null;
   }
   return null;
+}
+
+function buildRagQuery(messages: ConsultorChatMessage[], formContext: ConsultorFormContext): string {
+  const last = lastUserContent(messages) ?? "";
+  return [
+    last,
+    `Zona: ${formContext.zona_urbanistica || "não informada"}`,
+    `Uso: ${formContext.uso_imovel || "não informado"}`,
+    formContext.area_terreno_m2 != null ? `Área terreno: ${formContext.area_terreno_m2} m²` : "",
+    formContext.area_construida_m2 != null ? `Área construída: ${formContext.area_construida_m2} m²` : "",
+    formContext.area_permeavel_m2 != null ? `Área permeável: ${formContext.area_permeavel_m2} m²` : "",
+  ].filter(Boolean).join("\n");
 }
 
 export async function POST(req: Request) {
@@ -42,11 +55,17 @@ export async function POST(req: Request) {
   };
 
   try {
+    const legislacao = await getLegalContext({
+      query: buildRagQuery(messages, formContext),
+      matchCount: 3,
+    });
     const prompt = buildConsultorUrbPrompt({
       messages,
       formContext,
       checklistSnapshot: body.checklist_snapshot ?? null,
       normaResumo: body.norma_resumo ?? null,
+      legislacaoContext: legislacao.context,
+      legislacaoContextSource: legislacao.source,
     });
 
     const reply = await runLlamaAuditPrompt(prompt, 2048);

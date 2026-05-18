@@ -94,10 +94,19 @@ function parseMatrizConformidade(raw: unknown): MatrizConformidadeLinha[] {
         : typeof o.status === "string"
           ? o.status
           : "revisar";
+    const origem =
+      typeof o.origem_legal === "string"
+        ? o.origem_legal
+        : typeof o.fonte_legal === "string"
+          ? o.fonte_legal
+          : typeof o.origem === "string"
+            ? o.origem
+            : undefined;
     if (!medida.trim() && !regra.trim()) continue;
     out.push({
       medida_identificada: medida.trim() || "—",
       regra_lc751: regra.trim() || "—",
+      origem_legal: origem?.trim() || undefined,
       status_conformidade: st.trim() || "revisar",
     });
     if (out.length >= MAX_MATRIZ_LINHAS) break;
@@ -138,7 +147,8 @@ function parseMatrizConformidadeFromText(raw: string): MatrizConformidadeLinha[]
     out.push({
       medida_identificada: parts[0] || "—",
       regra_lc751: parts[1] || "—",
-      status_conformidade: parts[2] || "revisar",
+      origem_legal: parts.length >= 4 ? parts[2] || undefined : undefined,
+      status_conformidade: parts.length >= 4 ? parts[3] || "revisar" : parts[2] || "revisar",
     });
     if (out.length >= MAX_MATRIZ_LINHAS) break;
   }

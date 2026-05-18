@@ -10,8 +10,10 @@ import { ConsultorIADrawer } from "@/components/gabarito/consultor-ia-drawer";
 import {
   AlertTriangle,
   Download,
+  ExternalLink,
   FileText,
   Loader2,
+  MapPinned,
   MessageCircle,
   ScrollText,
   Sparkles,
@@ -22,6 +24,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const NOME_PLATAFORMA = "Gabarito";
 const HORAS_ECONOMIZADAS_POR_ANALISE = 14;
+const GEO_BLUMENAU_URL = "https://geo.blumenau.sc.gov.br";
 
 /** Inciso I, Art. 41, LC 751/2010 — texto para banner de governança (pré-análise). */
 const TEXTO_ART_41_I_LC751 =
@@ -212,6 +215,8 @@ export function GabaritoDashboard() {
   const [areaConstruidaProjetoInput, setAreaConstruidaProjetoInput] = useState("");
   const [areaPermeavelPropostaInput, setAreaPermeavelPropostaInput] = useState("");
   const [usoImovelInput, setUsoImovelInput] = useState("Residencial");
+  const [restricaoUsoSoloInput, setRestricaoUsoSoloInput] = useState("nao_informado");
+  const [isTombadoInput, setIsTombadoInput] = useState(false);
   const [categoriaChecklist, setCategoriaChecklist] = useState<CategoriaChecklist>("todas");
   const [analisesHistoricoCount, setAnalisesHistoricoCount] = useState(0);
   const [showModalOtimizar, setShowModalOtimizar] = useState(false);
@@ -307,6 +312,8 @@ export function GabaritoDashboard() {
           ? areaPermeavelPropostaNum
           : null,
       uso_imovel: usoImovelInput.trim(),
+      restricao_uso_solo: restricaoUsoSoloInput,
+      is_tombado: isTombadoInput,
       nome_projeto: nomeExibicao,
     }),
     [
@@ -314,7 +321,9 @@ export function GabaritoDashboard() {
       areaPermeavelPropostaInput,
       areaPermeavelPropostaNum,
       areaTerrenoNum,
+      isTombadoInput,
       nomeExibicao,
+      restricaoUsoSoloInput,
       usoImovelInput,
       zona,
     ],
@@ -358,6 +367,8 @@ export function GabaritoDashboard() {
         body: JSON.stringify({
           zona_urbanistica: zona,
           uso_imovel: usoImovelInput,
+          restricao_uso_solo: restricaoUsoSoloInput,
+          is_tombado: isTombadoInput,
           area_terreno_m2: at,
           area_construida_m2: ac,
           area_permeavel_m2:
@@ -387,7 +398,9 @@ export function GabaritoDashboard() {
     areaTerrenoNum,
     areaUsada,
     fallbackTextoOtimizacao,
+    isTombadoInput,
     limitePotencial,
+    restricaoUsoSoloInput,
     result?.checklist?.matriz_conformidade,
     result?.norma?.indice_aproveitamento_max,
     usoImovelInput,
@@ -418,6 +431,8 @@ export function GabaritoDashboard() {
           area_construida_m2: Number.isFinite(ac) && ac > 0 ? ac : null,
           area_permeavel_m2: areaPermeavelPropostaInput.trim() && Number.isFinite(ap) && ap >= 0 ? ap : null,
           uso_imovel: usoImovelInput.trim() || null,
+          restricao_uso_solo: restricaoUsoSoloInput,
+          is_tombado: isTombadoInput,
           extracao_visao: result.checklist.extracao_visao,
         }),
       });
@@ -442,7 +457,9 @@ export function GabaritoDashboard() {
     areaConstruidaProjetoInput,
     areaPermeavelPropostaInput,
     areaTerrenoM2Input,
+    isTombadoInput,
     result?.checklist?.extracao_visao,
+    restricaoUsoSoloInput,
     usoImovelInput,
     zona,
   ]);
@@ -616,6 +633,8 @@ export function GabaritoDashboard() {
             ? areaPermeavelPropostaParsed
             : undefined,
         uso_imovel: usoImovelInput.trim() || undefined,
+        restricao_uso_solo: restricaoUsoSoloInput,
+        is_tombado: isTombadoInput,
         persist: true,
         nome_projeto: nomeExibicao,
       };
@@ -824,6 +843,17 @@ export function GabaritoDashboard() {
                 <MessageCircle className="size-4 text-emerald-700" aria-hidden />
                 Consultor IA
               </button>
+              <a
+                href={GEO_BLUMENAU_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50/90 hover:text-emerald-950"
+                title="Abrir GEO Blumenau para consulta pública de lote, Consulta para Construir, mapas temáticos e WFS"
+              >
+                <MapPinned className="size-4 text-emerald-700" aria-hidden />
+                GEO Blumenau
+                <ExternalLink className="size-3.5 text-slate-500" aria-hidden />
+              </a>
             </div>
           </div>
         </div>
@@ -952,6 +982,40 @@ export function GabaritoDashboard() {
                     ))}
                   </select>
                 </div>
+                <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="restricao-solo-side" className="text-xs font-medium text-slate-600">
+                    Restrição geotécnica / uso do solo
+                  </Label>
+                  <select
+                    id="restricao-solo-side"
+                    value={restricaoUsoSoloInput}
+                    onChange={(e) => setRestricaoUsoSoloInput(e.target.value)}
+                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-500/25"
+                  >
+                    <option value="nao_informado">Não informado</option>
+                    <option value="sem_restricao">Sem restrição conhecida</option>
+                    <option value="liberada_com_restricao">Liberada com restrição</option>
+                    <option value="em_estudo">Em Estudo</option>
+                    <option value="interditado">Interditado</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500">
+                    Se “Em Estudo” ou “Interditado”, o painel exigirá EGGA assinado por profissional com CREA.
+                  </p>
+                </div>
+                <label className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 sm:col-span-2 lg:col-span-1">
+                  <input
+                    type="checkbox"
+                    checked={isTombadoInput}
+                    onChange={(e) => setIsTombadoInput(e.target.checked)}
+                    className="mt-0.5 size-4 rounded border-slate-300 text-emerald-600"
+                  />
+                  <span>
+                    <span className="block font-medium text-slate-800">Imóvel tombado / patrimônio histórico</span>
+                    <span className="mt-0.5 block text-[10px] text-slate-500">
+                      Aplica o filtro do Art. 68 da LC 1247/2019 e condiciona parâmetros edilícios ao órgão de patrimônio.
+                    </span>
+                  </span>
+                </label>
               </div>
               <div className="mt-4 border-t border-slate-200/80 pt-3">
                 <Button
@@ -1220,11 +1284,12 @@ export function GabaritoDashboard() {
             </div>
             {result?.checklist?.matriz_conformidade && result.checklist.matriz_conformidade.length > 0 ? (
               <div className="overflow-x-auto rounded-lg border border-slate-100">
-                <table className="table-auto w-full min-w-[480px] border-collapse text-left text-sm">
+                <table className="table-auto w-full min-w-[680px] border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/90 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       <th className="px-3 py-2.5 font-medium text-slate-700">Medida planta</th>
                       <th className="px-3 py-2.5 font-medium text-slate-700">Regra (LC 751/2010)</th>
+                      <th className="px-3 py-2.5 font-medium text-slate-700">Origem Legal</th>
                       <th className="px-3 py-2.5 font-medium text-slate-700">Status</th>
                     </tr>
                   </thead>
@@ -1237,6 +1302,11 @@ export function GabaritoDashboard() {
                         <td className="px-3 py-2.5 align-top text-xs font-medium">{row.medida_identificada}</td>
                         <td className="px-3 py-2.5 align-top text-xs text-slate-600">
                           {regraLc751Literal(row.medida_identificada, row.regra_lc751)}
+                        </td>
+                        <td className="px-3 py-2.5 align-top text-xs text-slate-600">
+                          <span className="inline-flex rounded-md border border-emerald-100 bg-emerald-50/70 px-2 py-1 text-[11px] font-medium text-emerald-900">
+                            {row.origem_legal || `Zoneamento - Zona ${zona}`}
+                          </span>
                         </td>
                         <td className="px-3 py-2.5 align-top">
                           {(() => {
