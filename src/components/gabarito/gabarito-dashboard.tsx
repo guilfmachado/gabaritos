@@ -294,7 +294,7 @@ export function GabaritoDashboard() {
     limitePotencial != null && limitePotencial > 0 && areaUsada != null ? Math.min(100, Math.max(0, (areaUsada / limitePotencial) * 100)) : 0;
   const permeavelMinima =
     Number.isFinite(areaTerrenoNum) && result?.norma
-      ? areaTerrenoNum * (areaPermeavelParaPercentual(result.norma.area_permeavel_min) / 100)
+      ? areaTerrenoNum * (areaPermeavelParaPercentual(result.norma.taxa_permeabilidade_min) / 100)
       : null;
   const permeavelOk =
     permeavelMinima != null && Number.isFinite(areaPermeavelPropostaNum) ? areaPermeavelPropostaNum >= permeavelMinima : null;
@@ -1405,10 +1405,10 @@ export function GabaritoDashboard() {
 
             {result?.norma ? (
               <p className="mb-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                Parâmetros: recuo frontal mín. {result.norma.recuo_frontal_min} m · recuo lateral mín.{" "}
-                {result.norma.recuo_lateral_min} m · TO máx. {taxaOcupacaoParaPercentual(result.norma.taxa_ocupacao_max).toFixed(1)}% · CA
-                máx. {result.norma.indice_aproveitamento_max} · permeável mín.{" "}
-                {areaPermeavelParaPercentual(result.norma.area_permeavel_min).toFixed(1)}%
+                Parâmetros: recuo frontal mín. {result.norma.recuo_frontal_min} m · TO máx.{" "}
+                {taxaOcupacaoParaPercentual(result.norma.taxa_ocupacao_max).toFixed(1)}% · CA máx.{" "}
+                {result.norma.indice_aproveitamento_max} · permeável mín.{" "}
+                {areaPermeavelParaPercentual(result.norma.taxa_permeabilidade_min).toFixed(1)}%
               </p>
             ) : null}
 

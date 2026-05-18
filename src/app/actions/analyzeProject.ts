@@ -10,7 +10,7 @@ import { NORMAS_LOCAIS_COLUMNS, type NormaLocal, type PlantaAnaliseIA, type Stat
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const FORM_FIELD = "file";
-const ZONA_FIELD = "zona_urbanistica";
+const ZONA_FIELD = "zona";
 const NOME_PROJETO_FIELD = "nome_projeto";
 const NOME_FIELD = "nome";
 /** Campo principal no FormData; `area_terreno_m2` mantido para compatibilidade. */

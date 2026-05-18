@@ -6,7 +6,7 @@
 --    tabela gráfica do Anexo IV (índices construtivos). Esses valores costumam
 --    estar no PDF de anexos (ex.: 3_2_751_2010.pdf na íntegra da Câmara) e na
 --    consolidação após alterações (ex.: LC 1569/2024, que substitui anexos).
--- 2) area_permeavel_min = 0.20 para todas as linhas abaixo, com base no Art.
+-- 2) taxa_permeabilidade_min = 0.20 para todas as linhas abaixo, com base no Art.
 --    22 da LC 751/2010 (mínimo de 20% do terreno de área permeável), salvo
 --    exceções legais não aplicáveis a esta lista (ex.: ZLE1 isenta).
 -- 3) taxa_ocupacao_max está em FRAÇÃO (60% → 0.60), conforme solicitado.
@@ -25,7 +25,7 @@ INSERT INTO public.normas_locais (
   recuo_lateral_min,
   taxa_ocupacao_max,
   indice_aproveitamento_max,
-  area_permeavel_min,
+  taxa_permeabilidade_min,
   observacao
 )
 VALUES
@@ -124,5 +124,5 @@ ON CONFLICT (zona_urbanistica) DO UPDATE SET
   recuo_lateral_min = EXCLUDED.recuo_lateral_min,
   taxa_ocupacao_max = EXCLUDED.taxa_ocupacao_max,
   indice_aproveitamento_max = EXCLUDED.indice_aproveitamento_max,
-  area_permeavel_min = EXCLUDED.area_permeavel_min,
+  taxa_permeabilidade_min = EXCLUDED.taxa_permeabilidade_min,
   observacao = EXCLUDED.observacao;

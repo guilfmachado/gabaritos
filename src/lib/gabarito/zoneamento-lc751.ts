@@ -35,7 +35,7 @@ export function validarParametrosZoneamentoLc751(
     );
   }
 
-  const permeabilidadeMin = Math.max(0.2, areaPermeavelMinParaFracao(norma.area_permeavel_min));
+  const permeabilidadeMin = Math.max(0.2, areaPermeavelMinParaFracao(norma.taxa_permeabilidade_min));
   const areaPermeavelMinima = areaTerreno * permeabilidadeMin;
   const areaPermeavel = input.area_permeavel_m2;
   if (areaPermeavel != null && Number.isFinite(areaPermeavel) && areaPermeavel < areaPermeavelMinima) {

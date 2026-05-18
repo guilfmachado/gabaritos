@@ -35,7 +35,7 @@ export function buildLegalAuditPrompt(input: LegalAuditPromptInput): string {
     input;
   const toPct = taxaOcupacaoParaPercentual(norma.taxa_ocupacao_max);
   const ca = norma.indice_aproveitamento_max;
-  const permPct = areaPermeavelParaPercentual(norma.area_permeavel_min);
+  const permPct = areaPermeavelParaPercentual(norma.taxa_permeabilidade_min);
   const limiteCa = areaTerrenoM2 * ca;
   const mJson = metricas ? JSON.stringify(metricas, null, 2) : "null";
   const extJson = JSON.stringify(extracao, null, 2);
@@ -53,7 +53,7 @@ export function buildLegalAuditPrompt(input: LegalAuditPromptInput): string {
     `Zona: ${zona}`,
     `Área do terreno (m²): ${areaTerrenoM2}`,
     `Recuo frontal mín. (tabela): ${norma.recuo_frontal_min} m`,
-    `Recuo lateral mín. (tabela): ${norma.recuo_lateral_min} m`,
+    "Recuo lateral/fundos: H/6 ou regra específica aplicável do Art. 35",
     `TO máx.: ${toPct}%`,
     `CA máx.: ${ca}`,
     `Área permeável mínima exigida (% sobre terreno): ${permPct}%`,

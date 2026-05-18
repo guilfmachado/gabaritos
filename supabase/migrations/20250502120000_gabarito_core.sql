@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.normas_locais (
   recuo_lateral_min double precision NOT NULL,
   taxa_ocupacao_max double precision NOT NULL,
   indice_aproveitamento_max double precision NOT NULL,
+  taxa_permeabilidade_min double precision NOT NULL DEFAULT 0.20,
   observacao text
 );
 
@@ -60,10 +61,11 @@ INSERT INTO public.normas_locais (
   recuo_frontal_min,
   taxa_ocupacao_max,
   indice_aproveitamento_max,
+  taxa_permeabilidade_min,
   recuo_lateral_min,
   observacao
 ) VALUES
-  ('ZR1', 5.00, 60.00, 1.200, 1.50, 'Parâmetros de exemplo para habitação em zona predominantemente residencial.'),
-  ('ZR2', 5.00, 70.00, 2.000, 1.50, 'Parâmetros de exemplo — conferir quadro do PDM vigente.'),
-  ('ZI', 10.00, 80.00, 2.500, 3.00, 'Parâmetros de exemplo para zona industrial.')
+  ('ZR1', 5.00, 60.00, 1.200, 0.20, 1.50, 'Parâmetros de exemplo para habitação em zona predominantemente residencial.'),
+  ('ZR2', 5.00, 70.00, 2.000, 0.20, 1.50, 'Parâmetros de exemplo — conferir quadro do PDM vigente.'),
+  ('ZI', 10.00, 80.00, 2.500, 0.20, 3.00, 'Parâmetros de exemplo para zona industrial.')
 ON CONFLICT (zona_urbanistica) DO NOTHING;

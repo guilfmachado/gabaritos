@@ -8,13 +8,13 @@ export type MetricasTerrenoPrecomputadas = {
   area_maxima_construida_m2: number;
   /** Terreno × taxa de ocupação máxima (fração ou % normalizada). */
   area_projecao_maxima_m2: number;
-  /** Terreno × `area_permeavel_min` (ex.: Art. 22 — fração mínima permeável). */
+  /** Terreno × `taxa_permeabilidade_min` (ex.: Art. 22 — fração mínima permeável). */
   area_permeavel_necessaria_m2: number;
 };
 
 export function computeMetricasTerreno(areaTerrenoM2: number, norma: NormaLocal): MetricasTerrenoPrecomputadas {
   const toFrac = taxaOcupacaoParaFracao(norma.taxa_ocupacao_max);
-  const permFrac = areaPermeavelMinParaFracao(norma.area_permeavel_min);
+  const permFrac = areaPermeavelMinParaFracao(norma.taxa_permeabilidade_min);
   return {
     area_terreno_m2: areaTerrenoM2,
     area_maxima_construida_m2: areaTerrenoM2 * norma.indice_aproveitamento_max,

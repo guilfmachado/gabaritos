@@ -250,12 +250,7 @@ function validateZoneamento(project: ProjectData): ProjectViolation[] {
   const areaTerreno = project.area_terreno_m2;
   if (!norma || !finite(areaTerreno) || areaTerreno <= 0) return violations;
 
-  const caBasico = finite(norma.coeficiente_aproveitamento_basico)
-    ? norma.coeficiente_aproveitamento_basico
-    : norma.indice_aproveitamento_max;
-  const caMax = finite(norma.coeficiente_aproveitamento_maximo)
-    ? norma.coeficiente_aproveitamento_maximo
-    : norma.indice_aproveitamento_max;
+  const caMax = norma.indice_aproveitamento_max;
   const areaConstruida = project.area_construida_total_m2;
 
   if (finite(areaConstruida)) {
@@ -279,19 +274,6 @@ function validateZoneamento(project: ProjectData): ProjectViolation[] {
           article: "Art. 20",
           measured: caProjeto,
           limit: caMax,
-        });
-      } else if (caProjeto > caBasico) {
-        violations.push({
-          id: "lc1181_outorga_onerosa",
-          severity: "WARNING",
-          pillar: "ZONEAMENTO",
-          title: "Exige Outorga Onerosa",
-          message:
-            "Atenção: A área construída ultrapassa o CA Básico. Será necessário o pagamento de Outorga Onerosa do Direito de Construir (Plano Diretor LC 1181)",
-          law: "LC 1181/2018",
-          article: "Arts. 80 a 83",
-          measured: caProjeto,
-          limit: caBasico,
         });
       }
     }

@@ -3,21 +3,19 @@ import type { NormaLocal } from "@/types/gabarito";
 
 export function buildZonaLegalContext(norma: NormaLocal): string {
   const zona = norma.zona_urbanistica;
-  const caBasico = norma.coeficiente_aproveitamento_basico;
-  const caMaximo = norma.coeficiente_aproveitamento_maximo;
-  const toPct = taxaOcupacaoParaPercentual(norma.taxa_ocupacao);
-  const permPct = areaPermeavelParaPercentual(norma.taxa_permeabilidade);
-  const recuoFrontal = norma.recuo_frontal;
-  const afastamento = norma.afastamento_lateral_fundos;
+  const caMaximo = norma.indice_aproveitamento_max;
+  const toPct = taxaOcupacaoParaPercentual(norma.taxa_ocupacao_max);
+  const permPct = areaPermeavelParaPercentual(norma.taxa_permeabilidade_min);
+  const recuoFrontal = norma.recuo_frontal_min;
+  const afastamento = "H/6 (Art. 35 da LC 751/2010)";
 
   return [
     `Zona ${zona} — parâmetros oficiais para cruzamento estrito:`,
-    `- Plano Diretor / Zoneamento — Art. 20: coeficiente de aproveitamento básico ${caBasico}; máximo ${caMaximo}.`,
+    `- Plano Diretor / Zoneamento — Art. 20: índice de aproveitamento máximo ${caMaximo}.`,
     `- Plano Diretor / Zoneamento — Art. 21: taxa de ocupação ${toPct}%.`,
     `- LC 751/2010 — Art. 22: taxa de permeabilidade mínima ${permPct}%.`,
     `- LC 751/2010 — Art. 31: recuo frontal mínimo ${recuoFrontal} m.`,
     `- LC 751/2010 — Art. 35: afastamento lateral/fundos ${afastamento}.`,
-    norma.observacao ? `- Observação cadastrada da zona: ${norma.observacao}` : "",
   ].filter(Boolean).join("\n");
 }
 

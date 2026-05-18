@@ -10,7 +10,7 @@ export function taxaOcupacaoParaFracao(n: number): number {
   return n > 1 ? n / 100 : n;
 }
 
-/** `area_permeavel_min` em fração ou % — devolve % para texto ao utilizador. */
+/** `taxa_permeabilidade_min` em fração ou % — devolve % para texto ao utilizador. */
 export function areaPermeavelParaPercentual(n: number): number {
   return taxaOcupacaoParaPercentual(n);
 }

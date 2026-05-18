@@ -22,10 +22,9 @@ export type BuildVisionPromptOptions = {
  */
 export function buildVisionPrompt(zona: string, norma: NormaLocal, options?: BuildVisionPromptOptions): string {
   const rf = norma.recuo_frontal_min;
-  const rl = norma.recuo_lateral_min;
   const toPct = taxaOcupacaoParaPercentual(norma.taxa_ocupacao_max);
   const ca = norma.indice_aproveitamento_max;
-  const permPct = areaPermeavelParaPercentual(norma.area_permeavel_min);
+  const permPct = areaPermeavelParaPercentual(norma.taxa_permeabilidade_min);
   const areaTerreno = options?.areaTerrenoM2;
   const m = options?.metricas;
   const areaConstruidaProjeto = options?.areaConstruidaProjetoM2 ?? null;
@@ -60,7 +59,7 @@ export function buildVisionPrompt(zona: string, norma: NormaLocal, options?: Bui
     "",
     "=== Parâmetros oficiais da zona (base de dados municipal) ===",
     `- Recuo frontal mínimo: ${rf} m`,
-    `- Recuo lateral mínimo: ${rl} m`,
+    "- Recuo lateral/fundos: H/6 ou regra específica aplicável do Art. 35",
     `- Taxa de ocupação máxima: ${toPct}% (valor já em percentagem para leitura humana)`,
     `- Coeficiente de aproveitamento máximo (CA / índice construtivo): ${ca}`,
     `- Área permeável mínima no terreno: ${permPct}%`,

@@ -208,24 +208,15 @@ export type StatusChecklist = {
 
 /** Colunas oficiais de `normas_locais` usadas pelo Gabarito. */
 export const NORMAS_LOCAIS_COLUMNS =
-  "id, zona_urbanistica, recuo_frontal_min, recuo_lateral_min, taxa_ocupacao_max, indice_aproveitamento_max, area_permeavel_min, coeficiente_aproveitamento_basico, coeficiente_aproveitamento_maximo, taxa_ocupacao, taxa_permeabilidade, recuo_frontal, afastamento_lateral_fundos, observacao" as const;
+  "zona_urbanistica, taxa_ocupacao_max, indice_aproveitamento_max, taxa_permeabilidade_min, recuo_frontal_min" as const;
 
 /** Linha de `normas_locais`. */
 export type NormaLocal = {
-  id: string;
   zona_urbanistica: string;
-  recuo_frontal_min: number;
-  recuo_lateral_min: number;
   taxa_ocupacao_max: number;
   indice_aproveitamento_max: number;
-  area_permeavel_min: number;
-  coeficiente_aproveitamento_basico: number;
-  coeficiente_aproveitamento_maximo: number;
-  taxa_ocupacao: number;
-  taxa_permeabilidade: number;
-  recuo_frontal: number;
-  afastamento_lateral_fundos: string;
-  observacao: string | null;
+  taxa_permeabilidade_min: number;
+  recuo_frontal_min: number;
 };
 
 export type ProjetoRow = {
