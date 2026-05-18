@@ -1,3 +1,4 @@
+import { getRegrasZona } from "../../constants/zoneamento_lc751";
 import {
   validarRebaixosAcessoVeicularLc748,
   validarViaLoteamentoLc748,
@@ -29,6 +30,16 @@ export type ProjectViolation = GabaritoEngineViolation & {
 export type GabaritoEngineResult = {
   isAprovado: boolean;
   violations: ProjectViolation[];
+};
+
+export type OutorgaOnerosaStatus = "ISENTO" | "EXIGE_OUTORGA" | "CRITICO";
+
+export type OutorgaOnerosaCheckResult = {
+  status: OutorgaOnerosaStatus;
+  caUtilizado: number;
+  coeficienteAproveitamentoBasico: number;
+  coeficienteAproveitamentoMax: number;
+  alerta?: ProjectViolation;
 };
 
 export type CorpoDaguaData = {
@@ -96,6 +107,74 @@ function fromChecklistItem(
     message: item.detalhe ?? item.rotulo,
     law,
     article,
+  };
+}
+
+export function checkOutorgaOnerosa(
+  areaConstruidaTotal: number,
+  areaTerreno: number,
+  zonaSigla: string,
+): OutorgaOnerosaCheckResult {
+  if (!finite(areaConstruidaTotal) || !finite(areaTerreno) || areaTerreno <= 0) {
+    throw new Error("Área construída total e área do terreno devem ser números válidos.");
+  }
+
+  const regrasZona = getRegrasZona(zonaSigla);
+  if (!regrasZona) {
+    throw new Error(`Regras de zoneamento não encontradas para a zona "${zonaSigla}".`);
+  }
+
+  const caUtilizado = areaConstruidaTotal / areaTerreno;
+  const coeficienteAproveitamentoBasico = regrasZona.coeficienteAproveitamentoBasico;
+  const coeficienteAproveitamentoMax = regrasZona.coeficienteAproveitamentoMax;
+
+  if (caUtilizado <= coeficienteAproveitamentoBasico) {
+    return {
+      status: "ISENTO",
+      caUtilizado,
+      coeficienteAproveitamentoBasico,
+      coeficienteAproveitamentoMax,
+    };
+  }
+
+  if (caUtilizado <= coeficienteAproveitamentoMax) {
+    return {
+      status: "EXIGE_OUTORGA",
+      caUtilizado,
+      coeficienteAproveitamentoBasico,
+      coeficienteAproveitamentoMax,
+      // TODO: Implementar fórmula de cálculo financeiro baseada no Decreto 9518/2011.
+      alerta: {
+        id: "lc1181_outorga_onerosa",
+        severity: "WARNING",
+        pillar: "ZONEAMENTO",
+        title: "Exige Outorga Onerosa",
+        message:
+          "Atenção: A área construída ultrapassa o CA Básico. Será necessário o pagamento de Outorga Onerosa do Direito de Construir (Plano Diretor LC 1181)",
+        law: "LC 1181/2018",
+        article: "Arts. 80 a 83",
+        measured: caUtilizado,
+        limit: coeficienteAproveitamentoBasico,
+      },
+    };
+  }
+
+  return {
+    status: "CRITICO",
+    caUtilizado,
+    coeficienteAproveitamentoBasico,
+    coeficienteAproveitamentoMax,
+    alerta: {
+      id: "lc751_ca_acima_maximo",
+      severity: "CRITICAL",
+      pillar: "ZONEAMENTO",
+      title: "Coeficiente de Aproveitamento acima do máximo",
+      message: `CA utilizado ${caUtilizado.toFixed(2)} excede o CA máximo da zona ${regrasZona.sigla} (${coeficienteAproveitamentoMax.toFixed(2)}).`,
+      law: "LC 751/2010",
+      article: "Art. 20",
+      measured: caUtilizado,
+      limit: coeficienteAproveitamentoMax,
+    },
   };
 }
 
@@ -180,31 +259,41 @@ function validateZoneamento(project: ProjectData): ProjectViolation[] {
   const areaConstruida = project.area_construida_total_m2;
 
   if (finite(areaConstruida)) {
-    const caProjeto = areaConstruida / areaTerreno;
-    if (caProjeto > caMax) {
-      violations.push({
-        id: "lc751_ca_acima_maximo",
-        severity: "CRITICAL",
-        pillar: "ZONEAMENTO",
-        title: "Coeficiente de Aproveitamento acima do máximo",
-        message: `CA do projeto ${caProjeto.toFixed(2)} excede o CA máximo da zona ${norma.zona_urbanistica} (${caMax.toFixed(2)}).`,
-        law: "LC 751/2010",
-        article: "Art. 20",
-        measured: caProjeto,
-        limit: caMax,
-      });
-    } else if (caProjeto > caBasico) {
-      violations.push({
-        id: "lc1181_outorga_onerosa",
-        severity: "INFO",
-        pillar: "ZONEAMENTO",
-        title: "Exige Outorga Onerosa",
-        message: "Área construída ultrapassa o CA básico e fica condicionada à Outorga Onerosa do Direito de Construir.",
-        law: "LC 1181/2018",
-        article: "Arts. 80 a 83",
-        measured: caProjeto,
-        limit: caBasico,
-      });
+    const zonaSigla = project.zona_urbanistica ?? norma.zona_urbanistica;
+    const regrasZonaDisponiveis = getRegrasZona(zonaSigla);
+    if (regrasZonaDisponiveis) {
+      const outorga = checkOutorgaOnerosa(areaConstruida, areaTerreno, zonaSigla);
+      if (outorga.alerta) {
+        violations.push(outorga.alerta);
+      }
+    } else {
+      const caProjeto = areaConstruida / areaTerreno;
+      if (caProjeto > caMax) {
+        violations.push({
+          id: "lc751_ca_acima_maximo",
+          severity: "CRITICAL",
+          pillar: "ZONEAMENTO",
+          title: "Coeficiente de Aproveitamento acima do máximo",
+          message: `CA do projeto ${caProjeto.toFixed(2)} excede o CA máximo da zona ${norma.zona_urbanistica} (${caMax.toFixed(2)}).`,
+          law: "LC 751/2010",
+          article: "Art. 20",
+          measured: caProjeto,
+          limit: caMax,
+        });
+      } else if (caProjeto > caBasico) {
+        violations.push({
+          id: "lc1181_outorga_onerosa",
+          severity: "WARNING",
+          pillar: "ZONEAMENTO",
+          title: "Exige Outorga Onerosa",
+          message:
+            "Atenção: A área construída ultrapassa o CA Básico. Será necessário o pagamento de Outorga Onerosa do Direito de Construir (Plano Diretor LC 1181)",
+          law: "LC 1181/2018",
+          article: "Arts. 80 a 83",
+          measured: caProjeto,
+          limit: caBasico,
+        });
+      }
     }
   }
 
