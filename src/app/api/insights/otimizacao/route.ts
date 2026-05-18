@@ -29,7 +29,7 @@ function buildPrompt(b: Body): string {
   const matriz =
     b.matriz_itens?.slice(0, 12).map((r) => `- ${r.medida}: ${r.status}`).join("\n") ?? "(sem itens)";
 
-  return `Você é consultor de arquitetura e urbanismo em Blumenau/SC, alinhado à LC 751/2010.
+  return `Você é consultor de arquitetura e urbanismo em Blumenau/SC, alinhado ao conjunto de leis municipais aplicáveis: LC 1181/2018, LC 747/2010, LC 748/2010, LC 749/2010, LC 751/2010, LC 1247/2019 e Decreto 9155/2010.
 
 Dados do projeto:
 - Zona urbanística: ${zona}
@@ -45,11 +45,11 @@ Trecho da matriz de auditoria (referência):
 ${matriz}
 
 Instruções:
-1) Se a área disponível for maior que zero, explique em 3–5 parágrafos curtos em português do Brasil onde o projeto pode ampliar área construída (ex.: novos pavimentos dentro do envelope, ampliação de suítes ou varandas), sempre lembrando TO máximo, recuos laterais/de fundos (Art. 35: mínimo H/6 — ex.: H=18 m implica 3 m) e permeabilidade (Art. 22: 20%).
+1) Se a área disponível for maior que zero, explique em 3–5 parágrafos curtos em português do Brasil onde o projeto pode ampliar área construída (ex.: novos pavimentos dentro do envelope, ampliação de suítes ou varandas), sempre lembrando TO máximo, recuos laterais/de fundos (LC 751, Art. 35: mínimo H/6 — ex.: H=18 m implica 3 m), permeabilidade (LC 751, Art. 22: 20%), acessos/rebaixos (LC 748) e requisitos edilícios (LC 1247) quando interferirem na solução.
 2) Cite explicitamente o Art. 35-A da LC 751/2010: afastamento mínimo de 1,50 m para vãos de portas e janelas em relação ao alinhamento frontal e aos recuos obrigatórios, ao sugerir novas aberturas ou fachadas.
 3) Se não houver área disponível (ou dados insuficientes), diga claramente que o indicativo está no limite ou que faltam dados — sem inventar números.
 4) Tom profissional, sem markdown, sem título.
-5) Ancore a oportunidade de lucro no Art. 20 da LC 751/2010 (área construída permitida = CA × área escriturada): quantifique m² adicionais possíveis e como isso se traduz em produto (tipologias, pavimentação) sem violar TO (Art. 21), recuos (Art. 35 H/6) e permeabilidade (Art. 22).`;
+5) Ancore a oportunidade de lucro no Art. 20 da LC 751/2010 (área construída permitida = CA × área escriturada), mas avise se a proposta também exigir revisão pela LC 748 (circulação/acessos), LC 1247 (edificações), LC 747/749 (ambiental/parcelamento) ou Decreto 9155 (alinhamento viário). Quantifique m² adicionais possíveis e como isso se traduz em produto sem violar TO (Art. 21), recuos (Art. 35 H/6) e permeabilidade (Art. 22).`;
 }
 
 export async function POST(req: Request) {

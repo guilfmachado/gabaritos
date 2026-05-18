@@ -3,16 +3,18 @@
 import { ConsultorFormattedBubble } from "@/components/gabarito/consultor-formatted-bubble";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LC751_ARTICLE_NAV, LC751_PDF_REFERENCIA_NOME } from "@/lib/gabarito/lc751-chat-reference";
+import { LEGISLACAO_ARTICLE_NAV, LEGISLACAO_MUNICIPAL_REFERENCIA_NOME } from "@/lib/gabarito/lc751-chat-reference";
 import type { ConsultorChatMessage, ConsultorFormContext } from "@/lib/replicate/build-consultor-urb-prompt";
 import type { NormaLocal, StatusChecklist } from "@/types/gabarito";
 import { BookOpen, Loader2, MessageCircle, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const QUICK_ACTIONS = [
-  { label: "Como otimizar meu VGV?", text: "Como otimizar meu VGV com base nos meus dados e na LC 751/2010? Cite os artigos aplicáveis." },
+  { label: "Como otimizar meu VGV?", text: "Como otimizar meu VGV com base nos meus dados e no conjunto de leis municipais aplicáveis? Cite os artigos." },
   { label: "Erro de recuo?", text: "Onde pode estar o erro de recuo na minha análise? Explique recuo frontal e laterais com os artigos corretos." },
   { label: "Regras do Art. 41", text: "Quais são as regras do Art. 41, I da LC 751/2010 no meu caso (uso e zona)?" },
+  { label: "Acesso/rebaixo", text: "Meus acessos veiculares e rebaixos atendem a LC 748/2010? O que devo conferir?" },
+  { label: "Edificações", text: "Quais pontos da LC 1247/2019 devo revisar em compartimentos, ventilação, iluminação e escadas?" },
   { label: "Permeável mínimo", text: "Qual o mínimo de área permeável que preciso respeitar e como calcular com meu terreno?" },
   { label: "GEO Blumenau", text: "Como uso o GEO Blumenau para conferir lote, zoneamento e Consulta para Construir antes de protocolar?" },
 ] as const;
@@ -45,9 +47,9 @@ export function ConsultorIADrawer({
         {
           role: "assistant",
           content:
-            "Olá! Sou o **Consultor IA** de auditoria urbanística. Tenho acesso aos campos que você preencheu, à norma da zona e ao JSON da última análise. Pergunte à vontade — citarei sempre os artigos da **LC 751/2010** (referência: " +
-            LC751_PDF_REFERENCIA_NOME +
-            "). Para cadastro, lote, Consulta para Construir, mapas temáticos ou dados WFS, use também o **GEO Blumenau**: https://geo.blumenau.sc.gov.br.",
+            "Olá! Sou o **Consultor IA** de auditoria urbanística. Tenho acesso aos campos que você preencheu, à norma da zona, ao JSON da última análise e ao RAG jurídico. Pergunte à vontade — citarei os artigos aplicáveis do acervo municipal (**" +
+            LEGISLACAO_MUNICIPAL_REFERENCIA_NOME +
+            "**). Para cadastro, lote, Consulta para Construir, mapas temáticos ou dados WFS, use também o **GEO Blumenau**: https://geo.blumenau.sc.gov.br.",
         },
       ]);
     }
@@ -130,7 +132,7 @@ export function ConsultorIADrawer({
               <h2 id="consultor-ia-title" className="truncate text-sm font-semibold tracking-tight text-slate-900">
                 Consultor IA
               </h2>
-              <p className="truncate text-[11px] text-slate-500">LC 751 · Llama 3 70B</p>
+              <p className="truncate text-[11px] text-slate-500">Leis municipais · Llama 3 70B</p>
             </div>
           </div>
           <Button type="button" variant="ghost" size="sm" className="shrink-0 text-slate-600" onClick={() => onOpenChange(false)}>
@@ -202,7 +204,7 @@ export function ConsultorIADrawer({
                     void sendMessage(input);
                   }
                 }}
-                placeholder="Ex.: Meu recuo lateral atende o H/6?"
+                placeholder="Ex.: Meu rebaixo, recuo ou escada atende a lei?"
                 rows={2}
                 className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-500/20 placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-2"
               />
@@ -220,10 +222,10 @@ export function ConsultorIADrawer({
           <div className="max-h-[28vh] shrink-0 overflow-y-auto border-t border-slate-200/90 bg-slate-100/80 px-3 py-2">
             <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
               <BookOpen className="size-3.5" aria-hidden />
-              Referência LC 751 (trechos)
+              Referências legais (trechos)
             </div>
             <div className="space-y-1.5">
-              {LC751_ARTICLE_NAV.map((item) => (
+              {LEGISLACAO_ARTICLE_NAV.map((item) => (
                 <div
                   key={item.anchor}
                   ref={(el) => {

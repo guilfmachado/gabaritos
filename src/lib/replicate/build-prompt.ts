@@ -2,7 +2,7 @@ import type { MetricasTerrenoPrecomputadas } from "@/lib/gabarito/metricas-terre
 import { areaPermeavelParaPercentual, taxaOcupacaoParaPercentual } from "@/lib/gabarito/taxa-ocupacao";
 import type { NormaLocal } from "@/types/gabarito";
 
-const FONTE_NORMATIVA_REF = "LC 1.181/2018; LC 751/2010; LC 1.247";
+const FONTE_NORMATIVA_REF = "LC 1.181/2018; LC 747/2010; LC 748/2010; LC 749/2010; LC 751/2010; LC 1.247/2019; Decreto 9155/2010";
 
 export type BuildVisionPromptOptions = {
   /** Área do terreno (m²) declarada pelo utilizador — base para limite × CA. */
@@ -18,7 +18,7 @@ export type BuildVisionPromptOptions = {
 };
 
 /**
- * Prompt multi-passo: matriz 3 colunas, APR/Art. 41, otimização de CA, parâmetros só a partir das colunas oficiais.
+ * Prompt multi-passo: matriz 3 colunas, APR/Art. 41, circulação, edificações, otimização de CA e parâmetros oficiais.
  */
 export function buildVisionPrompt(zona: string, norma: NormaLocal, options?: BuildVisionPromptOptions): string {
   const rf = norma.recuo_frontal_min;
@@ -54,7 +54,7 @@ export function buildVisionPrompt(zona: string, norma: NormaLocal, options?: Bui
       : "";
 
   return [
-    "Como especialista técnico da SEPLAN Blumenau, faça uma análise urbanística em camadas desta planta.",
+    "Como especialista técnico da SEPLAN Blumenau, faça uma análise urbanística em camadas desta planta, considerando todo o conjunto de leis municipais aplicáveis e não apenas zoneamento.",
     `Zona urbanística: ${zona}. Fonte normativa de referência: ${FONTE_NORMATIVA_REF}.`,
     "",
     "=== Parâmetros oficiais da zona (base de dados municipal) ===",
@@ -93,8 +93,10 @@ export function buildVisionPrompt(zona: string, norma: NormaLocal, options?: Bui
     "Indique, com base apenas no desenho e legendas: (1) se há indícios de Área com Potencial de Risco (APR); (2) se cotas ou textos sugerem pavimentação habitacional abaixo da referência de cota de enchente municipal (use 12 m como referência textual de trabalho quando a prancha mencionar cotas absolutas ou relativas a enchente).",
     "Se inferir uso predominantemente residencial E (APR OU risco de enchimento acima da referência), declare-o explicitamente nos campos boolean abaixo.",
     "",
-    "=== FLUXO LÓGICO OBRIGATÓRIO — AUDITORIA PROFUNDA (LC 751/2010) ===",
+    "=== FLUXO LÓGICO OBRIGATÓRIO — AUDITORIA PROFUNDA (LEGISLAÇÃO MUNICIPAL) ===",
     "Aplique, nesta ordem, e reflita cada passo no parecer técnico e na matriz:",
+    "0) CLASSIFICAÇÃO NORMATIVA",
+    "   - Para cada achado, indique se ele pertence a Plano Diretor/outorga (LC 1181), ambiental/parcelamento (LC 747/LC 749), circulação (LC 748), edificações (LC 1247), sistema viário (Decreto 9155) ou zoneamento (LC 751).",
     "",
     "1) RECUOS LATERAIS E DE FUNDOS (Art. 35)",
     '   A lei estabelece recuo calculado por H/6, onde H é a altura da edificação. Exemplo numérico obrigatório de raciocínio: se H = 18 m, o recuo lateral mínimo exigido é 18/6 = 3,00 m.',
@@ -120,20 +122,20 @@ export function buildVisionPrompt(zona: string, norma: NormaLocal, options?: Bui
     "=== Formato de resposta (JSON único, sem markdown) ===",
     "A análise principal deve incluir uma matriz em três colunas conceituais:",
     "1) medida_identificada — o que observou na planta;",
-    "2) regra_lc751 — parâmetro da lista oficial acima que se aplica;",
+    "2) regra_lc751 — regra legal aplicada (mantenha esta chave por compatibilidade, mesmo quando a origem for LC 748, LC 1247, LC 747/749, LC 1181 ou Decreto 9155);",
     "3) status_conformidade — conforme | inconforme | revisar.",
     "Guarde essas linhas no array `matriz_conformidade` (máximo 12 linhas, sem duplicar o mesmo ambiente).",
     "",
     "Inclua `otimizacao_sugestao_ia` (string): conforme item 4 acima; se o aproveitamento já estiver no limite, resuma em uma frase.",
     "",
     "Chave OBRIGATÓRIA `parecer_tecnico_llama` (string): texto contínuo, em português, como parecer de auditor urbanístico.",
-    "  - Para CADA inconformidade, divergência ou risco relevante que você identificar, escreva um parágrafo (ou item numerado) explicando o achado em linguagem humana e citando o artigo específico da LC 751/2010 (ex.: Art. 35, Art. 41, Art. 22, Art. 35-A).",
+    "  - Para CADA inconformidade, divergência ou risco relevante que você identificar, escreva um parágrafo (ou item numerado) explicando o achado em linguagem humana e citando a lei e o artigo específico aplicável.",
     "  - Se não houver achados negativos, declare a conformidade aparente com relação aos pontos analisados e cite os artigos verificados.",
     "  - Não copie o JSON no parecer; apenas narrativa técnica.",
     "",
     "Demais chaves obrigatórias do JSON:",
     "analise_texto (string), divergencias_resumo (string),",
-    "matriz_conformidade: [{ medida_identificada, regra_lc751, status_conformidade }],",
+    "matriz_conformidade: [{ medida_identificada, regra_lc751, status_conformidade }] (regra_lc751 é nome legado da chave; o conteúdo pode citar qualquer norma municipal aplicável),",
     "itens: [{ id, rotulo, status: conforme|inconforme|revisar, detalhe? }] (máx. 12, tópicos urbanísticos reais),",
     "area_construida_estimada_ia_m2 (número OBRIGATÓRIO; nunca null. Se necessário, use aproximação técnica baseada nas cotas visíveis),",
     "altura_edificacao_estimada_m (número ou null) — melhor estimativa de H em metros para o cálculo H/6, se impossível null,",

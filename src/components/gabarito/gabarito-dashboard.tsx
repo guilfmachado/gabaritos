@@ -806,7 +806,7 @@ export function GabaritoDashboard() {
               />
               <div className="min-w-0 lg:border-l lg:border-slate-200 lg:pl-4">
                 <p className="truncate text-base font-semibold tracking-tight text-slate-900">{nomeExibicao}</p>
-                <p className="text-xs font-medium text-slate-500">LC 751/2010 · Blumenau-SC</p>
+                <p className="text-xs font-medium text-slate-500">Legislação municipal · Blumenau-SC</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -871,7 +871,7 @@ export function GabaritoDashboard() {
               <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-200/80 pb-3">
                 <div>
                   <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-600">Entrada inteligente</h2>
-                  <p className="mt-0.5 text-[11px] text-slate-500">Metragens · IA (Llama Vision) + ajuste manual · LC 751</p>
+                  <p className="mt-0.5 text-[11px] text-slate-500">Metragens · IA (Llama Vision) + ajuste manual · leis municipais</p>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -1274,7 +1274,7 @@ export function GabaritoDashboard() {
             <div className="mb-4 flex flex-wrap items-end justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-sm font-semibold tracking-tight text-slate-900">Auditoria urbanística</h3>
-                <p className="text-xs text-slate-500">Medida na planta, regra LC 751/2010 e status</p>
+                <p className="text-xs text-slate-500">Medida na planta, regra legal aplicável e status</p>
               </div>
               {result?.checklist?.modo_fallback ? (
                 <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
@@ -1288,7 +1288,7 @@ export function GabaritoDashboard() {
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/90 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       <th className="px-3 py-2.5 font-medium text-slate-700">Medida planta</th>
-                      <th className="px-3 py-2.5 font-medium text-slate-700">Regra (LC 751/2010)</th>
+                      <th className="px-3 py-2.5 font-medium text-slate-700">Regra legal</th>
                       <th className="px-3 py-2.5 font-medium text-slate-700">Origem Legal</th>
                       <th className="px-3 py-2.5 font-medium text-slate-700">Status</th>
                     </tr>
@@ -1564,7 +1564,7 @@ export function GabaritoDashboard() {
                   </div>
                   <div>
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-emerald-900/90">Parecer do Auditor IA</h3>
-                    <p className="text-[10px] text-slate-500">Llama 3 70B · visão estruturada + LC 751/2010</p>
+                    <p className="text-[10px] text-slate-500">Llama 3 70B · visão estruturada + leis municipais</p>
                   </div>
                 </div>
                 <div className="mt-3 max-h-[min(22rem,50vh)] overflow-y-auto pr-1 text-sm leading-relaxed text-slate-700">
@@ -1614,7 +1614,7 @@ export function GabaritoDashboard() {
 
             {result?.projeto_id ? (
               <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-4 text-sm shadow-sm">
-                <h4 className="font-semibold text-slate-900">Relatório oficial (LC 751/2010)</h4>
+                <h4 className="font-semibold text-slate-900">Relatório oficial (legislação municipal)</h4>
                 <p className="mt-2 text-xs leading-relaxed text-slate-700">
                   Análise gravada com ID{" "}
                   <span className="rounded bg-white px-1 font-mono text-[11px] text-slate-800">{result.projeto_id}</span>.
@@ -1700,7 +1700,7 @@ export function GabaritoDashboard() {
       </div>
 
       <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/90 py-2.5 text-center text-[11px] leading-snug text-slate-500 shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
-        Baseado na LC 751/2010. Esta pré-análise não substitui a consulta oficial à SEPLAN/Blumenau.
+        Baseado no conjunto de leis municipais mapeadas. Esta pré-análise não substitui a consulta oficial à SEPLAN/Blumenau.
       </footer>
 
       <ConsultorIADrawer
@@ -1721,7 +1721,7 @@ export function GabaritoDashboard() {
             {otimizacaoIaLoading ? (
               <div className="mt-4 flex items-center gap-2 text-sm text-slate-600">
                 <Loader2 className="size-4 animate-spin text-emerald-600" aria-hidden />
-                Gerando sugestão com base no potencial e na LC 751/2010…
+                Gerando sugestão com base no potencial e na legislação municipal…
               </div>
             ) : null}
             {otimizacaoIaError ? (

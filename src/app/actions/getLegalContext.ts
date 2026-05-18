@@ -21,18 +21,18 @@ export type GetLegalContextResult = {
  * Fluxo:
  * 1. Gera embedding da pergunta/contexto com OPENAI_API_KEY (ou OPENAI_EMBEDDING_MODEL).
  * 2. Consulta Supabase RPC `match_documentos_legislacao`.
- * 3. Retorna os 3 trechos mais parecidos por padrão.
- * 4. Se embeddings/tabela/RPC falharem, usa fallback estático da LC 751 já mapeada.
+ * 3. Retorna os trechos legais mais parecidos.
+ * 4. Se embeddings/tabela/RPC falharem, usa fallback estático do ecossistema municipal já mapeado.
  */
 export async function getLegalContext(input: GetLegalContextInput): Promise<GetLegalContextResult> {
   const query = input.query?.trim();
   if (!query) {
-    return getLegislacaoRagContext("regras urbanísticas LC 751 Blumenau zoneamento", {
-      matchCount: input.matchCount ?? 3,
+    return getLegislacaoRagContext("leis urbanísticas Blumenau LC 1181 LC 747 LC 748 LC 749 LC 751 LC 1247 Decreto 9155 normas revogadas", {
+      matchCount: input.matchCount ?? 8,
     });
   }
 
   return getLegislacaoRagContext(query, {
-    matchCount: input.matchCount ?? 3,
+    matchCount: input.matchCount ?? 8,
   });
 }

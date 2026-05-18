@@ -95,7 +95,7 @@ export async function analyzeProjetoById(projetoId: string): Promise<AnalyzeProj
       return {
         ok: false,
         error:
-          "Defina area_terreno_m2 no cadastro do projeto antes da análise (obrigatório para auditoria LC 751).",
+          "Defina area_terreno_m2 no cadastro do projeto antes da análise (obrigatório para auditoria da legislação municipal).",
         status: 422,
       };
     }

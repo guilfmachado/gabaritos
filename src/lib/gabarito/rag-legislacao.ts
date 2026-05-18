@@ -1,4 +1,4 @@
-import { getLc751LeiTextoParaChatLlm } from "@/lib/gabarito/lc751-chat-reference";
+import { getLegislacaoMunicipalTextoParaChatLlm } from "@/lib/gabarito/lc751-chat-reference";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 export type DocumentoLegislacaoMatch = {
@@ -70,7 +70,7 @@ async function createOpenAiQueryEmbedding(input: string): Promise<number[] | nul
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     console.warn(
-      "[rag-legislacao] OPENAI_API_KEY ausente; usando fallback estático da LC 751/zoneamento.",
+      "[rag-legislacao] OPENAI_API_KEY ausente; usando fallback estático da legislação municipal.",
     );
     return null;
   }
@@ -152,7 +152,7 @@ async function createReplicateQueryEmbedding(input: string): Promise<number[] | 
   const token = process.env.REPLICATE_API_TOKEN?.trim();
   if (!token) {
     console.warn(
-      "[rag-legislacao] REPLICATE_API_TOKEN ausente; usando fallback estático da LC 751/zoneamento.",
+      "[rag-legislacao] REPLICATE_API_TOKEN ausente; usando fallback estático da legislação municipal.",
     );
     return null;
   }
@@ -301,7 +301,7 @@ export async function getLegislacaoRagContext(query: string, options?: {
 }> {
   const embedding = await createQueryEmbedding(query);
   if (!embedding) {
-    return { context: getLc751LeiTextoParaChatLlm(), matches: [], source: "fallback" };
+    return { context: getLegislacaoMunicipalTextoParaChatLlm(), matches: [], source: "fallback" };
   }
 
   try {
@@ -325,14 +325,14 @@ export async function getLegislacaoRagContext(query: string, options?: {
           source: "rag",
         };
       }
-      return { context: getLc751LeiTextoParaChatLlm(), matches: [], source: "fallback" };
+      return { context: getLegislacaoMunicipalTextoParaChatLlm(), matches: [], source: "fallback" };
     }
 
     const matches = (Array.isArray(data) ? data : []) as DocumentoLegislacaoMatch[];
     const usable = matches.filter((m) => m.conteudo?.trim());
     if (usable.length === 0) {
       console.warn("[rag-legislacao] documentos_legislacao vazia/sem matches; usando fallback estático.");
-      return { context: getLc751LeiTextoParaChatLlm(), matches: [], source: "fallback" };
+      return { context: getLegislacaoMunicipalTextoParaChatLlm(), matches: [], source: "fallback" };
     }
 
     return {
@@ -342,6 +342,6 @@ export async function getLegislacaoRagContext(query: string, options?: {
     };
   } catch (e) {
     console.warn("[rag-legislacao] Erro inesperado no RAG; usando fallback estático.", e);
-    return { context: getLc751LeiTextoParaChatLlm(), matches: [], source: "fallback" };
+    return { context: getLegislacaoMunicipalTextoParaChatLlm(), matches: [], source: "fallback" };
   }
 }

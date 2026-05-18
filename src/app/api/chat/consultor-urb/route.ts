@@ -27,9 +27,12 @@ function buildRagQuery(messages: ConsultorChatMessage[], formContext: ConsultorF
     last,
     `Zona: ${formContext.zona_urbanistica || "não informada"}`,
     `Uso: ${formContext.uso_imovel || "não informado"}`,
+    `Restrição uso do solo/geotecnia: ${formContext.restricao_uso_solo || "não informada"}`,
+    `Imóvel tombado: ${formContext.is_tombado === true ? "sim" : formContext.is_tombado === false ? "não" : "não informado"}`,
     formContext.area_terreno_m2 != null ? `Área terreno: ${formContext.area_terreno_m2} m²` : "",
     formContext.area_construida_m2 != null ? `Área construída: ${formContext.area_construida_m2} m²` : "",
     formContext.area_permeavel_m2 != null ? `Área permeável: ${formContext.area_permeavel_m2} m²` : "",
+    "Buscar em todo o acervo: LC 1181, LC 747, LC 748, LC 749, LC 751, LC 1247, Decreto 9155, Decreto 9143 revogado, Decreto 9151 revogado.",
   ].filter(Boolean).join("\n");
 }
 
@@ -52,12 +55,14 @@ export async function POST(req: Request) {
     area_construida_m2: null,
     area_permeavel_m2: null,
     uso_imovel: "",
+    restricao_uso_solo: "",
+    is_tombado: false,
   };
 
   try {
     const legislacao = await getLegalContext({
       query: buildRagQuery(messages, formContext),
-      matchCount: 3,
+      matchCount: 8,
     });
     const prompt = buildConsultorUrbPrompt({
       messages,

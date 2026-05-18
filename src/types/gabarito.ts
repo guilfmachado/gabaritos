@@ -193,7 +193,7 @@ export type StatusChecklist = {
   otimizacao_sugestao_ia?: string;
   /**
    * Parecer técnico narrativo (Llama / visão): explicação fundamentada por inconformidade,
-   * citando artigos da LC 751/2010.
+   * citando artigos da legislação municipal aplicável.
    */
   parecer_tecnico_llama?: string;
   /** Inferências declaradas pelo modelo (boolean). */

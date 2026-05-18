@@ -28,7 +28,7 @@ export type LegalAuditPromptInput = {
 };
 
 /**
- * Prompt para Llama 3 70B: auditoria jurídica com base na extração visual + LC 751.
+ * Prompt para Llama 3 70B: auditoria jurídica com base na extração visual + ecossistema legal municipal.
  */
 export function buildLegalAuditPrompt(input: LegalAuditPromptInput): string {
   const { zona, norma, extracao, areaTerrenoM2, metricas, areaConstruidaProjetoM2, areaPermeavelPropostaM2, usoImovelDeclarado, restricaoUsoSolo, isTombado } =
@@ -42,11 +42,11 @@ export function buildLegalAuditPrompt(input: LegalAuditPromptInput): string {
   const zonaContext = buildZonaLegalContext(norma);
 
   return [
-    "Você é um auditor sênior da SEPLAN de Blumenau. Analise a planta fornecida cruzando estritamente com os parâmetros da zona informada e a LC 751/2010. Se o uso for Residencial, valide agressivamente o Art. 41, I (Bloqueio abaixo da cota 12m) se aplicável.",
+    "Você é um auditor sênior da SEPLAN de Blumenau. Analise a planta fornecida cruzando estritamente com o ecossistema legal municipal: Plano Diretor LC 1181/2018, LC 747/2010, LC 748/2010, LC 749/2010, LC 751/2010, LC 1247/2019, Decreto 9155/2010 e alertas sobre normas revogadas. Se o uso for Residencial, valide agressivamente o Art. 41, I da LC 751/2010 (Bloqueio abaixo da cota 12m) se aplicável.",
     "Você recebeu a EXTRAÇÃO VISUAL da prancha (JSON) já produzida por modelo de visão.",
-    "Sua tarefa é AUDITORIA conforme LC 751/2010: comparar extração + dados declarados com a lei e com os parâmetros da zona.",
+    "Sua tarefa é AUDITORIA integrada: comparar extração + dados declarados com as leis aplicáveis ao tema, sem limitar a análise à LC 751/2010.",
     "",
-    "=== Texto normativo de referência (LC 751/2010 — trechos) ===",
+    "=== Texto normativo de referência de zoneamento (LC 751/2010 — trechos) ===",
     LC751_AUDIT_CONTEXT,
     "",
     "=== Dados da zona e do terreno ===",
@@ -77,6 +77,7 @@ export function buildLegalAuditPrompt(input: LegalAuditPromptInput): string {
     "Use esses valores para calcular o potencial indicativo (terreno × CA da zona) e para otimização de VGV; cruze com a extração visual.",
     "",
     "=== Obrigações de raciocínio ===",
+    "Antes de responder, classifique cada achado por eixo normativo: Plano Diretor/outorga (LC 1181), ambiental/parcelamento (LC 747/LC 749), circulação (LC 748), edificações (LC 1247), sistema viário (Decreto 9155), zoneamento (LC 751) ou norma revogada.",
     "0) Taxa de ocupação (Art. 21): se a extração trouxer area_projecao_horizontal_m2 e você tiver área do terreno, compare projeção/terreno com o TO máximo da zona. Se só houver taxa_ocupacao_estimada_pct, use como referência.",
     "1) Art. 35: com a altura H estimada na extração (ou inferida), calcule recuo mínimo H/6 e compare com recuos laterais/fundos extraídos. Ex.: H=18 m → 3 m. Registre inconformidades na matriz e no parecer.",
     "2) Art. 41, I: se uso for Residencial (declarado ou predominante na extração) e zona for APR/ARCO ou houver risco/cota baixa inferível, inclua alertas_criticos com mensagem contendo EXATAMENTE: Proibido uso residencial abaixo da cota 12m",
@@ -93,7 +94,8 @@ export function buildLegalAuditPrompt(input: LegalAuditPromptInput): string {
     "Responda APENAS com JSON contendo:",
     "analise_texto (string), divergencias_resumo (string),",
     "matriz_conformidade: [{ medida_identificada, regra_lc751, origem_legal, status_conformidade: conforme|inconforme|revisar }],",
-    "origem_legal deve indicar a fonte rastreável, ex.: Plano Diretor - Art. 20, LC 751/2010 - Art. 31, Zoneamento - Zona " + zona + ".",
+    "regra_lc751 é nome legado da chave; seu conteúdo pode e deve citar qualquer norma municipal aplicável, como LC 748, LC 1247, LC 747/749, LC 1181, Decreto 9155 ou LC 751.",
+    "origem_legal deve indicar a fonte rastreável, ex.: Plano Diretor - Art. 20, LC 748/2010 - Art. 11, LC 1247/2019 - Art. 68, LC 751/2010 - Art. 31, Zoneamento - Zona " + zona + ".",
     "itens: [{ id, rotulo, status: conforme|inconforme|revisar, detalhe? }],",
     "area_construida_estimada_ia_m2 (número, use extração se consistente),",
     "altura_edificacao_estimada_m (número ou null),",

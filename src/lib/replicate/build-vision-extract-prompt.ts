@@ -8,7 +8,7 @@ export function buildVisionExtractionPrompt(zona: string, norma: NormaLocal): st
   const rf = norma.recuo_frontal_min;
   const zonaContext = buildZonaLegalContext(norma);
   return [
-    "Você é um auditor sênior da SEPLAN de Blumenau. Analise a planta fornecida cruzando estritamente com os parâmetros da zona informada e a LC 751/2010. Se o uso for Residencial, valide agressivamente o Art. 41, I (Bloqueio abaixo da cota 12m) se aplicável.",
+    "Você é um auditor sênior da SEPLAN de Blumenau. Extraia dados úteis para cruzamento com todo o ecossistema legal municipal (zoneamento, circulação, edificações, parcelamento, ambiental e sistema viário). Se o uso for Residencial, observe sinais que possam acionar o Art. 41, I da LC 751/2010.",
     "",
     "Tarefa desta etapa: EXTRAÇÃO TÉCNICA da planta (imagem). Não emita parecer jurídico completo aqui — leia objetivamente medidas, usos e indícios que alimentarão a auditoria.",
     "PRIORIDADE MÁXIMA: localizar no desenho/quadro de áreas (ou cotas) (1) a ÁREA CONSTRUÍDA TOTAL e (2) a ÁREA DE PROJEÇÃO HORIZONTAL no terreno (silhueta/pé-direito no solo, para taxa de ocupação).",
@@ -41,6 +41,7 @@ export function buildVisionExtractionPrompt(zona: string, norma: NormaLocal): st
     "- taxa_ocupacao_estimada_pct: percentual (0–100) = projeção/terreno se souber área do lote na prancha; senão null ou estime a partir do desenho.",
     "- Recuos em metros a partir de cotas/legendas; null se impossível.",
     "- uso_predominante_planta: inferir pela planta (apartamentos, salas, etc.).",
+    "- observacoes_extracao também deve mencionar indícios de rebaixos/acessos, vias projetadas, escadas, compartimentos, ventilação, iluminação, loteamento, APP, corpos d'água, cotas de enchente ou tombamento quando visíveis.",
     "- observacoes_extracao: notas curtas sobre escala, ilegibilidade ou quadro de áreas.",
   ].join("\n");
 }
