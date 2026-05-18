@@ -39,7 +39,7 @@ export async function resolveVisionModelRunRef(
     const msg = e instanceof Error ? e.message : String(e);
     if (/404|not found/i.test(msg)) {
       console.error(
-        `[resolveVisionModelRunRef] Modelo não encontrado: ${owner}/${name}. Ex.: meta/llama-3.2-11b-vision-instruct não existe na Replicate — use lucataco/ollama-llama3.2-vision-11b ou justmalhar/meta-llama-3.2-11b-vision (REPLICATE_VISION_MODEL).`,
+        `[resolveVisionModelRunRef] Modelo não encontrado: ${owner}/${name}. Use o LLaVA estável yorickvp/llava-13b em REPLICATE_VISION_MODEL ou fixe um digest válido owner/name:hash.`,
       );
     }
     throw e;

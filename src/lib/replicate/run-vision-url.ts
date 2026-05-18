@@ -3,8 +3,8 @@ import { throwMissingEnv } from "@/lib/env/missing-env-log";
 import { resolveVisionModelRunRef } from "@/lib/replicate/resolve-vision-model-run-ref";
 import Replicate from "replicate";
 
-/** Alinhado a `analyze-planta.ts` — slug `meta/llama-3.2-11b-vision-instruct` não existe na Replicate (404). */
-const DEFAULT_VISION_MODEL = "lucataco/ollama-llama3.2-vision-11b";
+/** Alinhado a `analyze-planta.ts`: LLaVA 13B estável na Replicate (image URL + prompt). */
+const DEFAULT_VISION_MODEL = "yorickvp/llava-13b";
 
 function getReplicate(): Replicate {
   const token = process.env.REPLICATE_API_TOKEN?.trim();
@@ -26,13 +26,14 @@ export async function runVisionModelWithImageUrl(
   const model = await resolveVisionModelRunRef(replicate, modelRef);
 
   const resolvedImageUrl = resolvePublicImageUrlForServer(imageUrl);
-
-  const isMoondream = modelRef.toLowerCase().includes("moondream");
-  const input: Record<string, string | number> = {
+  const lowerModelRef = modelRef.toLowerCase();
+  const input: Record<string, unknown> = {
     image: resolvedImageUrl,
     prompt,
   };
-  if (!isMoondream) {
+  const isMoondream = lowerModelRef.includes("moondream");
+  const isLlava = lowerModelRef.includes("llava");
+  if (!isMoondream && !isLlava) {
     input.max_tokens = 4096;
   }
 

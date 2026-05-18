@@ -9,6 +9,7 @@ export function buildVisionExtractionPrompt(zona: string, norma: NormaLocal): st
   return [
     "Tarefa: EXTRAÇÃO TÉCNICA da planta (imagem). Não faça auditoria jurídica aqui — apenas leitura objetiva.",
     "PRIORIDADE MÁXIMA: localizar no desenho/quadro de áreas (ou cotas) (1) a ÁREA CONSTRUÍDA TOTAL e (2) a ÁREA DE PROJEÇÃO HORIZONTAL no terreno (silhueta/pé-direito no solo, para taxa de ocupação).",
+    "Esses números alimentam a Entrada Inteligente e os campos de VGV Oculto do dashboard premium; seja conservador e use null quando a leitura estiver ilegível.",
     `Zona urbanística informada: ${zona}.`,
     `Parâmetros de referência do município (compare visualmente com cotas na prancha): recuo frontal mín. ${rf} m; recuo lateral mín. tabelado ${rl} m (a verificação H/6 será feita na etapa seguinte).`,
     "",

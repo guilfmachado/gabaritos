@@ -10,12 +10,8 @@ import { runLlamaAuditPrompt } from "@/lib/replicate/run-llama-text";
 import { parseChecklistFromModelOutput } from "@/lib/replicate/parse-checklist";
 import type { ExtracaoVisaoLlama, NormaLocal, StatusChecklist } from "@/types/gabarito";
 
-/**
- * Padrão na Replicate: `meta/llama-3.2-11b-vision-instruct` não existe (404 em replicate.com/meta/...).
- * Usamos `lucataco/ollama-llama3.2-vision-11b` (image URL + prompt). Alternativa: `justmalhar/meta-llama-3.2-11b-vision`.
- * Texto-only (sem imagem): `meta/meta-llama-3-70b-instruct` — já usado na auditoria via `runLlamaAuditPrompt`, não substitui visão.
- */
-const DEFAULT_VISION_MODEL = "lucataco/ollama-llama3.2-vision-11b";
+/** Padrão estável na Replicate para visão: LLaVA 13B (image URL + prompt). */
+const DEFAULT_VISION_MODEL = "yorickvp/llava-13b";
 
 export type AnalyzePlantaInput = {
   imageBase64: string;
@@ -106,6 +102,9 @@ function stringifyModelOutput(output: unknown): string {
 
 function buildVisionModelInput(modelRef: string, imageUrl: string, prompt: string): Record<string, unknown> {
   const r = modelRef.toLowerCase();
+  if (r.includes("llava")) {
+    return { image: imageUrl, prompt };
+  }
   if (r.includes("moondream")) {
     return { image: imageUrl, prompt };
   }
